@@ -42,12 +42,22 @@ def create_app():
     from routes_trips import trips_bp
     from routes_admin import admin_bp
     from webhooks import webhooks_bp
+    from routes_setup import setup_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(business_bp)
     app.register_blueprint(trips_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(webhooks_bp)
+    app.register_blueprint(setup_bp)
+
+    # El plan gratuito de Render no da acceso a una consola (Shell), así que
+    # en vez de depender de "flask db upgrade" a mano, creamos las tablas
+    # que falten automáticamente cada vez que arranca la app. Es seguro:
+    # create_all() nunca borra ni pisa tablas que ya existen, solo agrega
+    # las que faltan.
+    with app.app_context():
+        db.create_all()
 
     @app.route('/api/health', methods=['GET'])
     def health():
