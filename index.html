@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadetería Centro — Pedí en tu ciudad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181B;
+    --ink-soft:#4B5259;
+    --bg:#F1F3EE;
+    --panel:#FFFFFF;
+    --navy:#14213D;
+    --flame:#E6462A;
+    --flame-dark:#C43A21;
+    --mustard:#F4B740;
+    --line:#DADFD6;
+    --radius-card: 14px;
+    --radius-pill: 999px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  :focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important;transition-duration:0.001ms !important;}
+  }
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+  .wrap-narrow{max-width:640px;margin:0 auto;padding:0 28px;}
+  [hidden]{display:none !important;}
+
+  /* ---------- HEADER ---------- */
+  header.site-header{
+    position:sticky;top:0;z-index:40;
+    background:rgba(241,243,238,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 0;
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--font-display);
+    font-weight:700;font-size:1.3rem;
+    text-decoration:none;color:var(--ink);
+  }
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;
+    background:var(--flame);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;overflow:hidden;
+  }
+  .brand-mark img{width:100%;height:100%;object-fit:cover;}
+  nav.main-nav{display:flex;gap:28px;align-items:center;}
+  nav.main-nav a{
+    text-decoration:none;font-size:0.95rem;color:var(--ink-soft);
+    font-weight:500;
+  }
+  nav.main-nav a:hover{color:var(--ink);}
+  .header-auth-area{display:flex;align-items:center;gap:10px;}
+  .header-greeting{font-size:0.88rem;color:var(--ink-soft);white-space:nowrap;}
+  .header-greeting strong{color:var(--ink);}
+  .btn-link{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;
+    font-size:0.9rem;font-weight:500;text-decoration:none;padding:0;
+  }
+  .btn-link:hover{color:var(--ink);}
+
+  .promo-bar{background:var(--navy);color:#fff;font-size:0.85rem;padding:9px 0;overflow:hidden;white-space:nowrap;position:relative;}
+  .promo-bar-track{display:inline-block;padding-left:100%;animation:promoMarquee 18s linear infinite;}
+  @keyframes promoMarquee{
+    from{ transform:translateX(0); }
+    to{ transform:translateX(-100%); }
+  }
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:11px 20px;border-radius:var(--radius-pill);
+    font-weight:600;font-size:0.95rem;
+    border:none;cursor:pointer;text-decoration:none;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-flame{background:var(--flame);color:#fff;}
+  .btn-flame:hover{background:var(--flame-dark);}
+  .btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+  .btn-outline:hover{border-color:var(--ink);}
+  .btn-navy{background:var(--navy);color:#fff;}
+  .btn-sm{padding:8px 16px;font-size:0.85rem;}
+  .btn-block{width:100%;justify-content:center;}
+
+  /* ---------- HERO ---------- */
+  .hero{position:relative;overflow:hidden;padding:72px 0 64px;}
+  .hero-grid{
+    display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:center;
+  }
+  .eyebrow-count{
+    font-size:0.9rem;color:var(--ink-soft);margin-bottom:18px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow-count strong{color:var(--ink);font-family:var(--font-display);}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--flame);flex-shrink:0;}
+  h1.hero-title{
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(2.4rem, 5vw, 3.6rem);
+    line-height:1.05;
+    margin:0 0 20px;
+    max-width:11ch;
+  }
+  .hero-sub{
+    font-size:1.1rem;color:var(--ink-soft);max-width:46ch;margin:0 0 32px;
+  }
+
+  .search-box{
+    background:var(--panel);
+    border:1.5px solid var(--line);
+    border-radius:16px;
+    padding:8px;
+    display:flex;gap:8px;
+    box-shadow:0 8px 24px rgba(20,24,27,0.06);
+  }
+  .search-box input{
+    flex:1;border:none;background:transparent;padding:12px 14px;
+    font-size:1rem;font-family:var(--font-body);color:var(--ink);
+  }
+  .search-box input:focus{outline:none;}
+  .search-box .btn{white-space:nowrap;}
+
+  .hero-trip-link{margin:22px 0 0;font-size:0.92rem;color:var(--ink-soft);}
+  .hero-trip-link a{color:var(--flame-dark);font-weight:600;text-decoration:none;border-bottom:1.5px solid rgba(230,70,42,0.35);}
+  .hero-trip-link a:hover{border-color:var(--flame-dark);}
+
+  .chip-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;}
+  .chip{
+    padding:8px 16px;border-radius:var(--radius-pill);
+    border:1.5px solid var(--line);background:var(--panel);
+    font-size:0.88rem;font-weight:500;color:var(--ink-soft);
+    cursor:pointer;transition:all .15s ease;
+  }
+  .chip:hover{border-color:var(--ink);color:var(--ink);}
+  .chip.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+  .route-art{position:relative;height:380px;}
+  .route-art svg{width:100%;height:100%;}
+
+  .hero-carousel{position:relative;width:100%;height:100%;border-radius:16px;overflow:hidden;background:var(--bg);}
+  .carousel-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:opacity 0.9s ease;}
+  .carousel-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.9);
+    border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    font-size:1.1rem;color:var(--ink);line-height:1;z-index:3;
+  }
+  .carousel-arrow:hover{background:#fff;}
+  .carousel-arrow.prev{left:12px;}
+  .carousel-arrow.next{right:12px;}
+  .carousel-dots{
+    position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+    display:flex;gap:7px;z-index:3;
+  }
+  .carousel-dot{
+    width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.55);
+    cursor:pointer;border:none;padding:0;
+  }
+  .carousel-dot.active{background:#fff;}
+
+  /* ---------- LISTINGS ---------- */
+  section.listings{padding:56px 0 64px;}
+  .section-head{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin-bottom:28px;gap:16px;flex-wrap:wrap;
+  }
+  h2.section-title{
+    font-family:var(--font-display);font-weight:700;
+    font-size:1.7rem;margin:0;
+  }
+  .section-note{color:var(--ink-soft);font-size:0.95rem;margin:0;}
+
+  .card-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  }
+  a.biz-card{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius-card);padding:22px;
+    display:flex;flex-direction:column;gap:10px;
+    transition:transform .15s ease, box-shadow .15s ease;
+    text-decoration:none;color:var(--ink);
+  }
+  a.biz-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(20,24,27,0.08);}
+  .biz-top{display:flex;align-items:center;gap:12px;}
+  .biz-avatar{
+    width:44px;height:44px;border-radius:50%;flex-shrink:0;
+    background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:1rem;object-fit:cover;
+    overflow:hidden;
+  }
+  .biz-top-text{flex:1;min-width:0;}
+  .biz-name{font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin:0;}
+  .biz-cat{
+    font-size:0.7rem;font-weight:700;color:var(--flame-dark);
+    background:rgba(230,70,42,0.1);padding:5px 12px 5px 9px;border-radius:var(--radius-pill);
+    white-space:nowrap;display:inline-flex;align-items:center;gap:6px;margin-top:4px;
+    text-transform:uppercase;letter-spacing:0.03em;border:1px solid rgba(230,70,42,0.22);
+  }
+  .biz-cat::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--flame-dark);flex-shrink:0;}
+  .biz-desc{color:var(--ink-soft);font-size:0.92rem;margin:0;flex:1;}
+  .biz-meta{display:flex;flex-direction:column;gap:4px;font-size:0.85rem;color:var(--ink-soft);}
+  .biz-products{
+    margin-top:6px;padding-top:12px;border-top:1px solid var(--line);
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .prod-row{display:flex;justify-content:space-between;font-size:0.88rem;cursor:pointer;padding:2px 0;border-radius:4px;}
+  .prod-row:hover{color:var(--flame-dark);}
+  .prod-row:hover .price{color:var(--flame-dark);}
+  .prod-row .price{font-weight:600;color:var(--ink);}
+  .no-products{font-size:0.85rem;color:var(--ink-soft);font-style:italic;}
+  .catalog-link{font-size:0.85rem;font-weight:600;color:var(--navy);margin-top:4px;}
+
+  .empty-state{
+    grid-column:1/-1;text-align:center;padding:56px 24px;
+    background:var(--panel);border:1.5px dashed var(--line);border-radius:var(--radius-card);
+  }
+  .empty-state p{color:var(--ink-soft);margin:8px 0 20px;}
+  .empty-state h3{font-family:var(--font-display);margin:0;font-size:1.3rem;}
+
+  /* ---------- HOW IT WORKS ---------- */
+  section.how{background:var(--navy);color:#fff;padding:64px 0;}
+  .how .section-title{color:#fff;}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:32px;}
+  .step{display:flex;flex-direction:column;gap:10px;}
+  .step-num{
+    font-family:var(--font-display);font-weight:700;font-size:1.6rem;
+    color:var(--mustard);
+  }
+  .step h3{margin:0;font-size:1.1rem;}
+  .step p{margin:0;color:rgba(255,255,255,0.72);font-size:0.92rem;}
+
+  /* ---------- SHARED TWO-COL / PANEL ---------- */
+  section.split-cta{padding:72px 0;}
+  .biz-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:56px;align-items:start;}
+  .biz-copy h2{
+    font-family:var(--font-display);font-weight:700;font-size:2rem;margin:0 0 16px;max-width:16ch;
+  }
+  .biz-copy p{color:var(--ink-soft);margin:0 0 20px;max-width:42ch;}
+  .benefit-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px;}
+  .benefit-list li{display:flex;gap:12px;align-items:flex-start;font-size:0.95rem;}
+  .benefit-list .check{
+    flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--mustard);
+    display:flex;align-items:center;justify-content:center;margin-top:2px;
+  }
+
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);
+    padding:32px;
+  }
+  .panel h3{font-family:var(--font-display);margin:0 0 4px;font-size:1.25rem;}
+  .panel .sub{color:var(--ink-soft);font-size:0.9rem;margin:0 0 22px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .form-row.full{grid-template-columns:1fr;}
+  label{display:block;font-size:0.82rem;font-weight:600;margin-bottom:6px;color:var(--ink);}
+  .field-hint{display:block;font-size:0.76rem;font-weight:400;color:var(--ink-soft);margin-top:4px;}
+  input[type=text], input[type=tel], input[type=email], input[type=password], select, textarea, input[type=number]{
+    width:100%;padding:11px 13px;border-radius:9px;border:1.5px solid var(--line);
+    font-family:var(--font-body);font-size:0.94rem;background:#fff;color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:70px;}
+  input:focus, select:focus, textarea:focus{outline:none;border-color:var(--navy);}
+  .form-actions{margin-top:8px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .form-msg{font-size:0.85rem;color:var(--ink-soft);}
+  .form-msg.success{color:#1E7A3D;}
+  .form-msg.error{color:var(--flame-dark);}
+
+  .divider{height:1px;background:var(--line);margin:28px 0;}
+
+  .product-list{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+  .product-item{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:10px 12px;background:var(--bg);border-radius:9px;font-size:0.9rem;
+  }
+  .product-item-text{flex:1;display:flex;align-items:center;gap:10px;}
+  .product-item .del{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;font-size:0.8rem;
+    text-decoration:underline;
+  }
+  .product-item .del:hover{color:var(--flame-dark);}
+
+  /* ---------- VIAJE PARTICULAR ---------- */
+  section.trip-cta{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .trip-route-mini{display:flex;align-items:center;gap:8px;margin-bottom:18px;}
+  .trip-route-mini .pin{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .trip-route-mini .pin.origin{background:var(--navy);}
+  .trip-route-mini .pin.dest{background:var(--flame);}
+  .trip-route-mini .track{flex:1;height:2px;background:repeating-linear-gradient(90deg, var(--line) 0 6px, transparent 6px 12px);}
+
+  .trip-list{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+  .trip-item{
+    padding:14px;border-radius:9px;background:var(--bg);
+    display:flex;flex-direction:column;gap:6px;font-size:0.9rem;
+  }
+  .trip-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .trip-item .route{font-weight:600;}
+  .trip-item .desc{color:var(--ink-soft);font-size:0.85rem;}
+  .status-badge{
+    font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:var(--radius-pill);
+    white-space:nowrap;
+  }
+  .status-badge.pendiente{background:rgba(244,183,64,0.25);color:#8A5F00;}
+  .status-badge.cancelado{background:rgba(20,24,27,0.08);color:var(--ink-soft);}
+  .trip-item .cancel-trip{
+    align-self:flex-start;background:none;border:none;color:var(--ink-soft);
+    font-size:0.78rem;text-decoration:underline;cursor:pointer;padding:0;
+  }
+  .trip-item .cancel-trip:hover{color:var(--flame-dark);}
+
+  /* ---------- AUTH / REGISTRO ---------- */
+  .auth-view{padding:72px 0 96px;}
+  .auth-panel{max-width:480px;margin:0 auto;}
+  .back-link{
+    display:inline-flex;align-items:center;gap:6px;color:var(--ink-soft);
+    text-decoration:none;font-size:0.9rem;font-weight:500;margin-bottom:24px;
+  }
+  .back-link:hover{color:var(--ink);}
+  .note-box{
+    margin-top:22px;padding:14px 16px;border-radius:9px;background:var(--bg);
+    font-size:0.85rem;color:var(--ink-soft);
+  }
+  .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;}
+  .choice-card{
+    display:flex;flex-direction:column;gap:6px;text-align:left;
+    border:1.5px solid var(--line);border-radius:12px;padding:20px;
+    text-decoration:none;color:var(--ink);transition:border-color .15s ease, transform .15s ease;
+  }
+  .choice-card:hover{border-color:var(--navy);transform:translateY(-2px);}
+  .choice-title{font-family:var(--font-display);font-weight:700;font-size:1rem;}
+  .choice-desc{font-size:0.85rem;color:var(--ink-soft);}
+  @media (max-width:600px){ .choice-row{grid-template-columns:1fr;} }
+
+  /* ---------- PANEL DE NEGOCIO ---------- */
+  .panel-view{padding:48px 0 96px;}
+  .panel-header{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    margin-bottom:32px;gap:16px;flex-wrap:wrap;
+  }
+  .panel-header h1{font-family:var(--font-display);font-size:1.9rem;margin:0 0 6px;}
+  .panel-header p{color:var(--ink-soft);margin:0;font-size:0.95rem;}
+  .panel-two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;}
+  .avatar-preview-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .avatar-preview{
+    width:56px;height:56px;border-radius:50%;background:var(--navy);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-family:var(--font-display);
+    font-weight:700;font-size:1.2rem;overflow:hidden;flex-shrink:0;
+  }
+  .avatar-preview img{width:100%;height:100%;object-fit:cover;}
+  .cover-preview{
+    height:90px;border-radius:10px;background:linear-gradient(135deg, var(--navy), var(--flame));
+    background-size:cover;background-position:center;margin-bottom:10px;border:1px solid var(--line);
+  }
+  input[type=file]{
+    width:100%;font-size:0.86rem;color:var(--ink-soft);
+    padding:9px 10px;border-radius:9px;border:1.5px dashed var(--line);background:#fff;
+  }
+  .stat-row{display:flex;flex-direction:column;gap:10px;margin-top:16px;}
+  .stat-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 14px;background:var(--bg);border-radius:9px;font-size:0.9rem;
+  }
+  .stat-item strong{font-family:var(--font-display);font-size:1.1rem;}
+
+  .banner-img-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;}
+  .banner-img-item{position:relative;width:84px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--line);}
+  .banner-img-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .banner-img-item button{
+    position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;
+    background:rgba(20,24,27,0.75);color:#fff;border:none;cursor:pointer;
+    font-size:0.7rem;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;
+  }
+  .banner-img-empty{font-size:0.85rem;color:var(--ink-soft);margin-top:14px;}
+
+  /* ---------- PERFIL PUBLICO DEL NEGOCIO ---------- */
+  .biz-profile{padding-bottom:80px;}
+  .profile-wrap{max-width:680px;margin:0 auto;padding:0 20px;}
+  .cover-banner{
+    height:280px;width:100%;background:linear-gradient(135deg, var(--navy), var(--flame));
+    background-size:cover;background-position:center;position:relative;
+  }
+  .cover-back-btn{
+    position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:50%;
+    background:rgba(20,24,27,0.55);color:#fff;display:flex;align-items:center;justify-content:center;
+    text-decoration:none;backdrop-filter:blur(3px);transition:background .15s ease;
+  }
+  .cover-back-btn:hover{background:rgba(20,24,27,0.75);}
+  .profile-head{
+    display:flex;align-items:flex-end;gap:18px;
+    margin-top:-116px;padding-bottom:20px;text-align:left;
+    position:relative;z-index:2;
+  }
+  .profile-avatar{
+    width:300px;height:300px;border-radius:50%;border:5px solid var(--bg);
+    background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:5.6rem;overflow:hidden;flex-shrink:0;
+    box-shadow:0 2px 10px rgba(20,24,27,0.15);
+    margin-left:clamp(-180px, calc(-25vw + 160px), -8px);
+  }
+  .profile-avatar img{width:100%;height:100%;object-fit:cover;}
+  .profile-info{padding-top:14px;padding-bottom:6px;min-width:0;}
+  .profile-info h1{font-family:var(--font-display);font-size:1.6rem;margin:0 0 8px;}
+  .profile-meta-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--ink-soft);font-size:0.88rem;}
+  .profile-meta-row .dot-sep{opacity:0.5;}
+  .contact-row{display:flex;gap:10px;flex-wrap:wrap;padding-top:16px;}
+  .contact-btn{
+    display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:var(--radius-pill);
+    font-size:0.88rem;font-weight:600;text-decoration:none;border:1.5px solid var(--line);color:var(--ink);
+  }
+  .contact-btn.whatsapp{background:#25D366;border-color:#25D366;color:#fff;}
+  .contact-btn:hover{opacity:0.9;}
+  .profile-desc{color:var(--ink-soft);margin:22px 0 0;text-align:left;}
+  .feed-divider{border:none;border-top:1px solid var(--line);margin:28px 0;}
+
+  /* ---------- MODAL DE PRODUCTO ---------- */
+  .product-modal-overlay{
+    position:fixed;inset:0;background:rgba(20,24,27,0.6);z-index:200;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .product-modal{
+    background:var(--panel);border-radius:18px;max-width:560px;width:100%;
+    max-height:88vh;overflow-y:auto;position:relative;
+    box-shadow:0 20px 50px rgba(20,24,27,0.25);
+  }
+  .product-modal-close{
+    position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;
+    background:rgba(255,255,255,0.9);border:none;cursor:pointer;font-size:1.1rem;
+    display:flex;align-items:center;justify-content:center;color:var(--ink);z-index:2;
+  }
+  .product-modal-close:hover{background:#fff;}
+  .product-modal-img{width:100%;height:280px;object-fit:cover;border-radius:18px 18px 0 0;background:var(--bg);}
+  .product-modal-noimg{
+    width:100%;height:120px;background:var(--bg);border-radius:18px 18px 0 0;
+    display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:0.85rem;
+  }
+  .product-modal-body{padding:26px;}
+  .product-modal-body h3{font-family:var(--font-display);font-size:1.4rem;margin:0 0 8px;}
+  .product-modal-body .pprice{font-weight:700;color:var(--flame-dark);font-size:1.2rem;}
+  .product-modal-body .pdesc{color:var(--ink-soft);margin:14px 0 0;}
+  .product-modal-biz{
+    display:flex;align-items:center;gap:8px;margin-top:16px;padding-top:16px;
+    border-top:1px solid var(--line);font-size:0.85rem;color:var(--ink-soft);
+  }
+  .product-modal-biz strong{color:var(--ink);}
+  .product-modal-cta{margin-top:20px;}
+
+  a.result-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);
+    overflow:hidden;display:flex;flex-direction:column;text-decoration:none;color:var(--ink);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  a.result-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(20,24,27,0.08);}
+  .result-img{width:100%;height:140px;object-fit:cover;background:var(--bg);}
+  .result-img-placeholder{
+    width:100%;height:140px;background:var(--bg);display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);font-size:0.78rem;
+  }
+  .result-body{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .result-body .pname{font-family:var(--font-display);font-weight:700;font-size:1rem;margin:0;}
+  .result-body .pprice{font-weight:700;color:var(--flame-dark);font-size:1rem;}
+  .result-body .pdesc{color:var(--ink-soft);font-size:0.86rem;margin:0;flex:1;}
+  .result-biz{font-size:0.8rem;color:var(--ink-soft);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);}
+  .result-biz strong{color:var(--ink);}
+
+  .prod-thumb{width:36px;height:36px;border-radius:7px;object-fit:cover;background:var(--bg);flex-shrink:0;}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:40px 0;border-top:1px solid var(--line);}
+  .footer-inner{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  }
+  .footer-inner p{margin:0;color:var(--ink-soft);font-size:0.85rem;}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:920px){
+    .hero-grid{grid-template-columns:1fr;}
+    .route-art{height:200px;order:-1;}
+    .card-grid{grid-template-columns:repeat(2,1fr);}
+    .steps{grid-template-columns:1fr;}
+    .biz-grid{grid-template-columns:1fr;}
+    .panel-two-col{grid-template-columns:1fr;}
+    nav.main-nav{display:none;}
+  }
+  @media (max-width:600px){
+    .card-grid{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
+    .search-box{flex-direction:column;}
+    h1.hero-title{max-width:none;}
+    .cover-banner{height:190px;}
+    .profile-head{margin-top:-80px;gap:12px;}
+    .profile-avatar{width:200px;height:200px;font-size:3.8rem;border-width:4px;margin-left:-8px;}
+    .result-img{height:120px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a href="#/" class="brand" id="brandHomeLink">
+      <span class="brand-mark" id="headerBrandMark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 17a2 2 0 100-4 2 2 0 000 4zM19 17a2 2 0 100-4 2 2 0 000 4z" stroke="#fff" stroke-width="2"/><path d="M5 15V8a1 1 0 011-1h5l5 5h3v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      Cadetería Centro
+    </a>
+    <nav class="main-nav">
+      <a href="#/">Buscar</a>
+      <a href="#viaje-particular">Viaje particular</a>
+      <a href="#como-funciona">Cómo funciona</a>
+    </nav>
+    <div id="headerAuthArea" class="header-auth-area"></div>
+  </div>
+</header>
+<div class="promo-bar" id="promoBar" hidden>
+  <div class="promo-bar-track" id="promoBarText"></div>
+</div>
+
+<main id="app">
+
+<!-- ============ HOME ============ -->
+<div class="view" id="view-home">
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow-count"><span class="dot"></span> <strong id="bizCount">0</strong> negocios ya venden por acá</p>
+        <h1 class="hero-title" id="heroTitle">Pedí en minutos. Vendé sin límites.</h1>
+        <p class="hero-sub" id="heroSubtitle">Encontrá rotiserías, pizzerías y panaderías de tu zona, o sumá tu negocio y empezá a recibir pedidos hoy mismo.</p>
+
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Buscá un negocio o un plato — ej. milanesas, pizzería..." aria-label="Buscar negocios o productos">
+          <button class="btn btn-navy" id="searchBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#fff" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+            Buscar
+          </button>
+        </div>
+
+        <div class="chip-row" id="chipRow"></div>
+
+        <p class="hero-trip-link">¿Necesitás mandar algo puntual, sin pasar por un negocio? <a href="#viaje-particular">Pedí un viaje particular</a></p>
+      </div>
+
+      <div class="route-art" id="heroArt" aria-hidden="true">
+        <svg viewBox="0 0 420 380" fill="none">
+          <path d="M20 340 C 90 300, 90 200, 180 190 S 320 100, 340 40" stroke="#DADFD6" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+          <circle cx="20" cy="340" r="9" fill="#14213D"/>
+          <circle cx="340" cy="40" r="9" fill="#E6462A"/>
+          <g transform="translate(150,150)">
+            <rect x="-46" y="-30" width="92" height="60" rx="12" fill="#FFFFFF" stroke="#DADFD6" stroke-width="1.5"/>
+            <circle cx="-18" cy="18" r="9" fill="#14181B"/>
+            <circle cx="18" cy="18" r="9" fill="#14181B"/>
+            <path d="M-30 0 L-10 -14 H14 L28 0" stroke="#E6462A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <rect x="-6" y="-26" width="26" height="16" rx="3" fill="#F4B740"/>
+          </g>
+          <g transform="translate(300,240)">
+            <rect x="-30" y="-40" width="60" height="80" rx="6" fill="#FFFFFF" stroke="#DADFD6" stroke-width="1.5"/>
+            <rect x="-20" y="-28" width="40" height="10" rx="2" fill="#F4B740"/>
+            <rect x="-20" y="-12" width="40" height="6" rx="2" fill="#DADFD6"/>
+            <rect x="-20" y="0" width="26" height="6" rx="2" fill="#DADFD6"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="listings" id="listings">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title" id="listingsTitle">Negocios en tu zona</h2>
+          <p class="section-note" id="listingsNote">Mostrando todos los negocios registrados</p>
+        </div>
+      </div>
+      <div class="card-grid" id="cardGrid">
+        <div class="empty-state"><p>Cargando negocios…</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="split-cta trip-cta" id="viaje-particular">
+    <div class="wrap biz-grid">
+      <div class="biz-copy">
+        <div class="trip-route-mini" aria-hidden="true">
+          <span class="pin origin"></span><span class="track"></span><span class="pin dest"></span>
+        </div>
+        <h2>Pedí un viaje particular</h2>
+        <p>¿Tenés que mandar un documento, un regalo o cualquier cosa de un punto a otro de la ciudad? Pedí que un cadete lo lleve, sin pasar por ningún negocio registrado.</p>
+        <ul class="benefit-list">
+          <li><span class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#14181B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Contanos origen, destino y qué hay que llevar</li>
+          <li><span class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#14181B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Coordinás directo con el cadete por el teléfono que dejes</li>
+          <li><span class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#14181B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Seguí el estado de tus pedidos en esta misma página</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>Solicitar viaje</h3>
+        <p class="sub">Dejanos los datos del viaje y un cadete se va a contactar con vos.</p>
+
+        <form id="tripForm">
+          <div class="form-row">
+            <div>
+              <label for="tOrigin">Dirección de origen</label>
+              <input type="text" id="tOrigin" required placeholder="¿Dónde lo retiramos?">
+            </div>
+            <div>
+              <label for="tDest">Dirección de destino</label>
+              <input type="text" id="tDest" required placeholder="¿Dónde lo entregamos?">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div>
+              <label for="tDesc">Qué hay que llevar</label>
+              <textarea id="tDesc" required placeholder="Ej. Un sobre con documentos"></textarea>
+            </div>
+          </div>
+          <div class="form-row full">
+            <div>
+              <label for="tPhone">Teléfono de contacto</label>
+              <input type="tel" id="tPhone" required placeholder="Ej. 351 555 1234">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-flame">Pedir viaje</button>
+            <span class="form-msg" id="tripMsg"></span>
+          </div>
+        </form>
+
+        <div id="myTripsBlock" hidden>
+          <div class="divider"></div>
+          <h3>Tus pedidos</h3>
+          <div class="trip-list" id="myTripList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how" id="como-funciona">
+    <div class="wrap">
+      <h2 class="section-title">Cómo funciona</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <h3>Buscá lo que se te antoja</h3>
+          <p>Usá el buscador o los filtros por rubro para encontrar rotiserías, pizzerías y panaderías cerca tuyo.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <h3>Entrá al negocio</h3>
+          <p>Mirá su catálogo completo, los precios y sus datos de contacto antes de decidir.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <h3>Pedí directo</h3>
+          <p>Contactá al negocio con la información publicada y coordiná tu envío con Cadetería Centro.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="split-cta" id="negocios-teaser">
+    <div class="wrap biz-grid">
+      <div class="biz-copy">
+        <h2>Sumá tu negocio a Cadetería Centro</h2>
+        <p>Creá tu cuenta, armá tu perfil comercial y subí tu menú. Vas a tener tu propia página, con tu foto de portada, tu logo y todo tu catálogo a la vista.</p>
+        <ul class="benefit-list">
+          <li><span class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#14181B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Tu propia página con foto de portada y de perfil</li>
+          <li><span class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#14181B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>WhatsApp y redes sociales a un clic de distancia</li>
+          <li><span class="check"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#14181B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Todo tu catálogo, visible desde la página principal</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Empezá gratis</h3>
+        <p class="sub">El registro te lleva menos de un minuto. Vas a poder completar el resto de tu perfil después.</p>
+        <a href="#/registro" class="btn btn-flame btn-block">Registrar mi negocio</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============ REGISTRO ============ -->
+<div class="view" id="view-registro" hidden>
+  <section class="auth-view">
+    <div class="wrap-narrow">
+      <a href="#/" class="back-link">← Volver a la búsqueda</a>
+
+      <div id="registroChooser">
+        <div class="panel auth-panel" style="text-align:center;">
+          <h3>¿Cómo querés registrarte?</h3>
+          <p class="sub">Elegí una opción para continuar.</p>
+          <div class="choice-row">
+            <a href="#/registro/cliente" class="choice-card">
+              <span class="choice-title">Soy cliente particular</span>
+              <span class="choice-desc">Quiero pedir en negocios o solicitar viajes particulares.</span>
+            </a>
+            <a href="#/registro/negocio" class="choice-card">
+              <span class="choice-title">Soy dueño de un negocio</span>
+              <span class="choice-desc">Quiero vender mis productos en Cadetería Centro.</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div id="registroCliente" hidden>
+        <div class="panel auth-panel">
+          <h3>Registro de cliente</h3>
+          <p class="sub">Creá tu cuenta para pedir más rápido la próxima vez.</p>
+          <form id="clientForm">
+            <div class="form-row full">
+              <div>
+                <label for="cName">Nombre y apellido</label>
+                <input type="text" id="cName" required placeholder="Tu nombre">
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="cEmail">Email</label>
+                <input type="email" id="cEmail" required placeholder="tu@email.com">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label for="cPassword">Contraseña</label>
+                <input type="password" id="cPassword" required placeholder="Elegí una contraseña" minlength="4">
+              </div>
+              <div>
+                <label for="cPassword2">Repetir contraseña</label>
+                <input type="password" id="cPassword2" required placeholder="Repetila" minlength="4">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-flame btn-block">Crear cuenta</button>
+            </div>
+            <span class="form-msg" id="clientRegisterMsg"></span>
+          </form>
+        </div>
+      </div>
+
+      <div id="registroNegocio" hidden>
+        <div class="panel auth-panel">
+          <h3>Registrá tu negocio</h3>
+          <p class="sub">Por ahora este es un formulario protocolar para reservar tu lugar. Más adelante vamos a validar los datos de verdad.</p>
+          <form id="registerForm">
+            <div class="form-row full">
+              <div>
+                <label for="bName">Nombre del negocio</label>
+                <input type="text" id="bName" required placeholder="Ej. Rotisería Don Pedro">
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="bCategory">Rubro</label>
+                <select id="bCategory" required>
+                  <option value="">Elegí un rubro</option>
+                  <option>Rotisería</option>
+                  <option>Pizzería</option>
+                  <option>Panadería</option>
+                  <option>Parrilla</option>
+                  <option>Comida china</option>
+                  <option>Heladería</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="bEmail">Email</label>
+                <input type="email" id="bEmail" required placeholder="tu@email.com">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label for="bPassword">Contraseña</label>
+                <input type="password" id="bPassword" required placeholder="Elegí una contraseña" minlength="4">
+              </div>
+              <div>
+                <label for="bPassword2">Repetir contraseña</label>
+                <input type="password" id="bPassword2" required placeholder="Repetila" minlength="4">
+              </div>
+            </div>
+            <span class="field-hint">Por ahora no se valida contra ningún servidor real — es solo para simular el flujo.</span>
+            <div class="form-actions" style="margin-top:14px;">
+              <button type="submit" class="btn btn-flame btn-block">Crear cuenta y continuar</button>
+            </div>
+            <span class="form-msg" id="registerMsg"></span>
+          </form>
+        </div>
+        <div class="note-box">Al crear la cuenta vas a entrar directo al panel de tu negocio, donde vas a poder cargar tu perfil comercial y tus productos.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ INICIAR SESION ============ -->
+<div class="view" id="view-ingresar" hidden>
+  <section class="auth-view">
+    <div class="wrap-narrow">
+      <a href="#/" class="back-link">← Volver a la búsqueda</a>
+      <div class="panel auth-panel">
+        <h3>Iniciar sesión</h3>
+        <p class="sub">Entrá con el email y la contraseña que usaste al registrarte.</p>
+        <form id="loginForm">
+          <div class="form-row full">
+            <div>
+              <label for="lEmail">Email</label>
+              <input type="email" id="lEmail" required placeholder="tu@email.com">
+            </div>
+          </div>
+          <div class="form-row full">
+            <div>
+              <label for="lPassword">Contraseña</label>
+              <input type="password" id="lPassword" required placeholder="Tu contraseña">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-flame btn-block">Ingresar</button>
+          </div>
+          <span class="form-msg" id="loginMsg"></span>
+        </form>
+      </div>
+      <div class="note-box">¿Todavía no tenés cuenta? <a href="#/registro">Registrate acá</a>.</div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PANEL DE NEGOCIO ============ -->
+<div class="view" id="view-panel" hidden>
+  <section class="panel-view">
+    <div class="wrap">
+      <a href="#/" class="back-link">← Volver a la búsqueda</a>
+      <div class="panel-header">
+        <div>
+          <h1 id="panelTitle">Panel de tu negocio</h1>
+          <p>Completá tu perfil comercial y cargá tu catálogo. Los clientes lo ven desde la página principal.</p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div id="myBizSelectWrap"></div>
+          <a href="#" id="viewPublicLink" class="btn btn-outline btn-sm">Ver mi página pública</a>
+        </div>
+      </div>
+
+      <div class="panel-two-col">
+        <div class="panel">
+          <h3>Perfil comercial</h3>
+          <p class="sub">Así te ven tus clientes en tu página.</p>
+          <form id="profileForm">
+            <div class="avatar-preview-row">
+              <div class="avatar-preview" id="avatarPreview"></div>
+              <div>
+                <label for="pfAvatar" style="margin-bottom:4px;">Foto de perfil (logo)</label>
+                <input type="file" id="pfAvatar" accept="image/*">
+                <span class="field-hint">JPG o PNG. La ajustamos automáticamente al subirla.</span>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="pfCover">Foto de portada</label>
+                <div class="cover-preview" id="coverPreview"></div>
+                <input type="file" id="pfCover" accept="image/*">
+                <span class="field-hint">Se recorta a modo panorámico en tu página pública.</span>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="pfDesc">Descripción del negocio</label>
+                <textarea id="pfDesc" placeholder="Contales a tus clientes qué los espera"></textarea>
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label for="pfAddress">Dirección</label>
+                <input type="text" id="pfAddress" placeholder="Calle y número">
+              </div>
+              <div>
+                <label for="pfPhone">Teléfono</label>
+                <input type="tel" id="pfPhone" placeholder="Ej. 351 555 1234">
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label for="pfWhatsapp">WhatsApp</label>
+                <input type="tel" id="pfWhatsapp" placeholder="Solo números, con código de área">
+              </div>
+              <div>
+                <label for="pfCategory">Rubro</label>
+                <select id="pfCategory">
+                  <option>Rotisería</option>
+                  <option>Pizzería</option>
+                  <option>Panadería</option>
+                  <option>Parrilla</option>
+                  <option>Comida china</option>
+                  <option>Heladería</option>
+                  <option>Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div>
+                <label for="pfInstagram">Instagram</label>
+                <input type="text" id="pfInstagram" placeholder="usuario o link">
+              </div>
+              <div>
+                <label for="pfFacebook">Facebook</label>
+                <input type="text" id="pfFacebook" placeholder="usuario o link">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-navy">Guardar perfil</button>
+              <span class="form-msg" id="profileMsg"></span>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <h3>Catálogo de productos</h3>
+          <p class="sub">Todo lo que cargues acá aparece en tu página pública y en la búsqueda.</p>
+          <form id="productForm">
+            <div class="form-row">
+              <div>
+                <label for="pName">Producto</label>
+                <input type="text" id="pName" required placeholder="Ej. Milanesa napolitana">
+              </div>
+              <div>
+                <label for="pPrice">Precio</label>
+                <input type="number" id="pPrice" min="0" step="1" required placeholder="0">
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="pDesc">Descripción (opcional)</label>
+                <input type="text" id="pDesc" placeholder="Ej. Con papas fritas">
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <div class="avatar-preview-row" style="margin-bottom:8px;">
+                  <div class="prod-thumb" id="productImgPreview" style="width:48px;height:48px;"></div>
+                  <div style="flex:1;">
+                    <label for="pImage" style="margin-bottom:4px;">Foto del producto (opcional)</label>
+                    <input type="file" id="pImage" accept="image/*">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-flame" id="productSubmitBtn">Agregar producto</button>
+              <button type="button" class="btn-link" id="cancelEditBtn" hidden>Cancelar edición</button>
+              <span class="form-msg" id="productMsg"></span>
+            </div>
+          </form>
+          <div class="product-list" id="myProductList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PAGINA PUBLICA DEL NEGOCIO ============ -->
+<div class="view" id="view-negocio" hidden>
+  <section class="biz-profile">
+    <div class="cover-banner" id="pubCover">
+      <a href="#/" class="cover-back-btn" aria-label="Volver a la búsqueda">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <div class="profile-wrap">
+      <div class="profile-head">
+        <div class="profile-avatar" id="pubAvatar"></div>
+        <div class="profile-info">
+          <h1 id="pubName"></h1>
+          <div class="profile-meta-row">
+            <span class="biz-cat" id="pubCat" style="margin-top:0;"></span>
+            <span class="dot-sep" id="pubMetaDot1">·</span>
+            <span id="pubAddress"></span>
+            <span class="dot-sep" id="pubMetaDot2">·</span>
+            <span id="pubPhone"></span>
+          </div>
+          <div class="contact-row" id="pubContactRow"></div>
+        </div>
+      </div>
+      <p class="profile-desc" id="pubDesc"></p>
+      <hr class="feed-divider">
+    </div>
+
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">Catálogo</h2>
+      </div>
+      <div class="card-grid" id="pubCatalog"></div>
+    </div>
+  </section>
+</div>
+
+<div id="productModalRoot"></div>
+
+<!-- ============ PANEL ADMINISTRADOR ============ -->
+<div class="view" id="view-admin" hidden>
+  <section class="panel-view">
+    <div class="wrap">
+      <a href="#/" class="back-link">← Volver a la búsqueda</a>
+      <div class="panel-header">
+        <div>
+          <h1>Panel de administrador</h1>
+          <p>Cambios acá se ven en el momento para todos los que visiten la página.</p>
+        </div>
+      </div>
+
+      <div class="panel-two-col">
+        <div class="panel">
+          <h3>Logo e imagen principal</h3>
+          <p class="sub">El ícono de arriba de todo y las fotos que rotan en el banner de inicio.</p>
+
+          <div class="avatar-preview-row">
+            <div class="avatar-preview" id="adminLogoPreview" style="border-radius:9px;"></div>
+            <div style="flex:1;">
+              <label for="ahLogo" style="margin-bottom:4px;">Logo del sitio</label>
+              <input type="file" id="ahLogo" accept="image/*">
+              <span class="field-hint">Reemplaza el ícono que aparece junto a "Cadetería Centro".</span>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <label for="ahWhatsapp">WhatsApp de la cadetería</label>
+          <input type="tel" id="ahWhatsapp" placeholder="Solo números, con código de país y área">
+          <span class="field-hint">A este número se redirige a los clientes cuando piden un viaje particular.</span>
+          <span class="form-msg" id="ahWhatsappMsg"></span>
+
+          <div class="divider"></div>
+
+          <label for="ahImage">Imágenes del banner</label>
+          <input type="file" id="ahImage" accept="image/*" multiple>
+          <span class="field-hint">Podés seleccionar varias imágenes juntas. Si hay más de una, se van deslizando solas cada pocos segundos.</span>
+          <div class="banner-img-list" id="bannerImgList"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Título y subtítulo</h3>
+          <p class="sub">El texto principal del banner de inicio.</p>
+          <form id="adminHeroForm">
+            <div class="form-row full">
+              <div>
+                <label for="ahTitle">Título</label>
+                <input type="text" id="ahTitle" placeholder="Ej. Pedí en minutos. Vendé sin límites.">
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="ahSubtitle">Subtítulo</label>
+                <textarea id="ahSubtitle" placeholder="Bajada del banner principal"></textarea>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-navy">Guardar título y subtítulo</button>
+              <span class="form-msg" id="adminHeroMsg"></span>
+            </div>
+          </form>
+
+          <div class="divider"></div>
+          <h3>Barra de anuncio</h3>
+          <p class="sub">Una franja fina arriba de todo el sitio, para avisos o promociones.</p>
+          <form id="adminPromoForm">
+            <div class="form-row full">
+              <div>
+                <label style="display:flex; align-items:center; gap:8px; font-weight:500;">
+                  <input type="checkbox" id="apEnabled" style="width:auto;">
+                  Mostrar barra de anuncio
+                </label>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div>
+                <label for="apText">Texto del anuncio</label>
+                <input type="text" id="apText" placeholder="Ej. Envío gratis en tu primer pedido">
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-navy">Guardar anuncio</button>
+              <span class="form-msg" id="adminPromoMsg"></span>
+            </div>
+          </form>
+
+          <div class="divider"></div>
+          <h3>Resumen del sitio</h3>
+          <div class="stat-row" id="adminStats"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <a href="#/" class="brand" id="footerBrandHomeLink" style="font-size:1.05rem;">
+      <span class="brand-mark" id="footerBrandMark" style="width:26px;height:26px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 17a2 2 0 100-4 2 2 0 000 4zM19 17a2 2 0 100-4 2 2 0 000 4z" stroke="#fff" stroke-width="2"/><path d="M5 15V8a1 1 0 011-1h5l5 5h3v3" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      Cadetería Centro
+    </a>
+    <p>Conectamos negocios locales con vecinos que quieren pedir sin vueltas.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const API_BASE = 'https://cadeteria-centro-backend.onrender.com/api';
+  const SESSION_KEY = 'cc_session';
+  const CATEGORIES = ['Todos','Rotisería','Pizzería','Panadería','Parrilla','Comida china','Heladería','Otro'];
+  const AVATAR_COLORS = ['#14213D','#E6462A','#8A5F00','#1E7A3D'];
+
+  // session: { token, type: 'negocio'|'cliente'|'admin', name, businessId? }
+  let session = null;
+  let siteSettings = { heroTitle:'', heroSubtitle:'', heroImages:[], logoUrl:'', promoEnabled:false, promoText:'', cadeteriaWhatsapp:'' };
+  let activeCategory = 'Todos';
+  let searchTerm = '';
+  let editingProductId = null;
+  let currentBusinessCache = null; // último negocio del panel, para no re-pedirlo en cada click
+
+  const heroArtEl = document.getElementById('heroArt');
+  const defaultHeroArtHtml = heroArtEl.innerHTML;
+  const defaultHeaderLogoHtml = document.getElementById('headerBrandMark').innerHTML;
+  const defaultFooterLogoHtml = document.getElementById('footerBrandMark').innerHTML;
+
+  const views = {
+    home: document.getElementById('view-home'),
+    registro: document.getElementById('view-registro'),
+    ingresar: document.getElementById('view-ingresar'),
+    panel: document.getElementById('view-panel'),
+    negocio: document.getElementById('view-negocio'),
+    admin: document.getElementById('view-admin')
+  };
+
+  const cardGrid = document.getElementById('cardGrid');
+  const bizCount = document.getElementById('bizCount');
+  const listingsNote = document.getElementById('listingsNote');
+  const listingsTitle = document.getElementById('listingsTitle');
+  const chipRow = document.getElementById('chipRow');
+  const headerAuthArea = document.getElementById('headerAuthArea');
+
+  const registroChooser = document.getElementById('registroChooser');
+  const registroCliente = document.getElementById('registroCliente');
+  const registroNegocio = document.getElementById('registroNegocio');
+  const clientForm = document.getElementById('clientForm');
+  const clientRegisterMsg = document.getElementById('clientRegisterMsg');
+  const registerForm = document.getElementById('registerForm');
+  const registerMsg = document.getElementById('registerMsg');
+  const loginForm = document.getElementById('loginForm');
+  const loginMsg = document.getElementById('loginMsg');
+
+  const myBizSelectWrap = document.getElementById('myBizSelectWrap');
+  const viewPublicLink = document.getElementById('viewPublicLink');
+  const panelTitle = document.getElementById('panelTitle');
+
+  const profileForm = document.getElementById('profileForm');
+  const profileMsg = document.getElementById('profileMsg');
+  const avatarPreview = document.getElementById('avatarPreview');
+  const coverPreview = document.getElementById('coverPreview');
+  const pfAvatarInput = document.getElementById('pfAvatar');
+  const pfCoverInput = document.getElementById('pfCover');
+  let pendingAvatarDataUrl = '';
+  let pendingCoverDataUrl = '';
+
+  const productForm = document.getElementById('productForm');
+  const productMsg = document.getElementById('productMsg');
+  const myProductList = document.getElementById('myProductList');
+
+  const tripForm = document.getElementById('tripForm');
+  const tripMsg = document.getElementById('tripMsg');
+  const myTripsBlock = document.getElementById('myTripsBlock');
+  const myTripList = document.getElementById('myTripList');
+
+  /* ---------- HELPERS ---------- */
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : str;
+    return div.innerHTML;
+  }
+
+  function initials(name){
+    return (name || '?').trim().charAt(0).toUpperCase();
+  }
+
+  function colorFor(id){
+    let sum = 0;
+    for(let i=0;i<(id||'').length;i++) sum += id.charCodeAt(i);
+    return AVATAR_COLORS[sum % AVATAR_COLORS.length];
+  }
+
+  function avatarHtml(biz){
+    if(biz.avatarUrl) return `<img src="${escapeHtml(biz.avatarUrl)}" alt="">`;
+    return initials(biz.name);
+  }
+
+  function capitalize(s){
+    return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+  }
+
+  function fileToResizedDataUrl(file, maxDim, quality){
+    return new Promise((resolve, reject) => {
+      if(!file) { resolve(''); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if(w > maxDim || h > maxDim){
+            if(w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
+            else { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => reject(new Error('No se pudo leer la imagen'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ---------- API ---------- */
+  async function apiFetch(path, options){
+    options = options || {};
+    const headers = Object.assign({'Content-Type':'application/json'}, options.headers || {});
+    if(session && session.token) headers['Authorization'] = 'Bearer ' + session.token;
+
+    let res;
+    try{
+      res = await fetch(API_BASE + path, Object.assign({}, options, {headers}));
+    }catch(networkErr){
+      const err = new Error('No pudimos conectarnos con el servidor. Probá de nuevo en un momento.');
+      err.network = true;
+      throw err;
+    }
+
+    let body = null;
+    try{ body = await res.json(); }catch(e){ /* respuesta sin cuerpo */ }
+
+    if(!res.ok){
+      const err = new Error((body && (body.error || body.message)) || `Error del servidor (${res.status})`);
+      err.status = res.status;
+      err.body = body;
+      throw err;
+    }
+    return body;
+  }
+
+  function loadSession(){
+    try{
+      const raw = localStorage.getItem(SESSION_KEY);
+      session = raw ? JSON.parse(raw) : null;
+    }catch(e){ session = null; }
+  }
+
+  function saveSession(){
+    try{
+      if(session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      else localStorage.removeItem(SESSION_KEY);
+    }catch(e){ /* si el navegador bloquea localStorage, la sesión no persiste entre visitas */ }
+  }
+
+  /* ---------- ROUTER ---------- */
+  function getRoute(){
+    const h = location.hash;
+    if(h === '#/registro') return { name:'registro', sub:'chooser' };
+    if(h === '#/registro/cliente') return { name:'registro', sub:'cliente' };
+    if(h === '#/registro/negocio') return { name:'registro', sub:'negocio' };
+    if(h === '#/ingresar') return { name:'ingresar' };
+    if(h === '#/panel') return { name:'panel' };
+    if(h === '#/admin') return { name:'admin' };
+    if(h.indexOf('#/negocio/') === 0) return { name:'negocio', id: h.replace('#/negocio/','') };
+    return { name:'home' };
+  }
+
+  function showView(name){
+    Object.keys(views).forEach(k => { views[k].hidden = (k !== name); });
+  }
+
+  function showRegistroSub(sub){
+    registroChooser.hidden = sub !== 'chooser';
+    registroCliente.hidden = sub !== 'cliente';
+    registroNegocio.hidden = sub !== 'negocio';
+  }
+
+  function renderHeaderAuthUI(){
+    headerAuthArea.innerHTML = '';
+    if(!session){
+      headerAuthArea.innerHTML = `
+        <a href="#/ingresar" class="btn-link">Iniciar sesión</a>
+        <a href="#/registro" class="btn btn-flame">Registrarme</a>
+      `;
+      return;
+    }
+    if(session.type === 'negocio'){
+      headerAuthArea.innerHTML = `
+        <span class="header-greeting">Hola, <strong>${escapeHtml(session.name)}</strong></span>
+        <a href="#/panel" class="btn btn-outline btn-sm">Mi negocio</a>
+        <button type="button" class="btn-link" id="logoutBtn">Cerrar sesión</button>
+      `;
+    } else if(session.type === 'admin'){
+      headerAuthArea.innerHTML = `
+        <a href="#/admin" class="btn btn-navy btn-sm">Panel admin</a>
+        <button type="button" class="btn-link" id="logoutBtn">Cerrar sesión</button>
+      `;
+    } else {
+      headerAuthArea.innerHTML = `
+        <span class="header-greeting">Hola, <strong>${escapeHtml(session.name)}</strong></span>
+        <button type="button" class="btn-link" id="logoutBtn">Cerrar sesión</button>
+      `;
+    }
+    const logoutBtn = document.getElementById('logoutBtn');
+    if(logoutBtn){
+      logoutBtn.addEventListener('click', () => {
+        session = null;
+        saveSession();
+        location.hash = '#/';
+        renderHeaderAuthUI();
+        render();
+      });
+    }
+  }
+
+  async function render(){
+    const route = getRoute();
+    renderHeaderAuthUI();
+
+    if(route.name === 'registro'){
+      showView('registro');
+      showRegistroSub(route.sub);
+    } else if(route.name === 'ingresar'){
+      showView('ingresar');
+    } else if(route.name === 'panel'){
+      if(!session || session.type !== 'negocio'){
+        location.hash = '#/ingresar';
+        return;
+      }
+      showView('panel');
+      await renderPanel();
+    } else if(route.name === 'admin'){
+      if(!session || session.type !== 'admin'){
+        location.hash = '#/ingresar';
+        return;
+      }
+      showView('admin');
+      await renderAdmin();
+    } else if(route.name === 'negocio'){
+      showView('negocio');
+      await renderPublicBusiness(route.id);
+    } else {
+      showView('home');
+      renderChips();
+      await renderListings();
+      await renderMyTrips();
+    }
+    window.scrollTo(0,0);
+  }
+
+  /* ---------- HOME: LISTADO Y BÚSQUEDA ---------- */
+  function renderChips(){
+    chipRow.innerHTML = '';
+    CATEGORIES.forEach(cat => {
+      const chip = document.createElement('button');
+      chip.className = 'chip' + (cat === activeCategory ? ' active' : '');
+      chip.type = 'button';
+      chip.textContent = cat;
+      chip.addEventListener('click', async () => {
+        activeCategory = cat;
+        renderChips();
+        await renderListings();
+      });
+      chipRow.appendChild(chip);
+    });
+  }
+
+  async function renderListings(){
+    cardGrid.innerHTML = `<div class="empty-state"><p>Cargando…</p></div>`;
+
+    if(searchTerm){
+      await renderProductResults();
+      return;
+    }
+
+    listingsTitle.textContent = 'Negocios en tu zona';
+
+    let all;
+    try{
+      const qs = activeCategory !== 'Todos' ? `?category=${encodeURIComponent(activeCategory)}` : '';
+      all = await apiFetch('/businesses' + qs);
+    }catch(err){
+      cardGrid.innerHTML = `<div class="empty-state"><h3>No pudimos cargar los negocios</h3><p>${escapeHtml(err.message)}</p></div>`;
+      return;
+    }
+
+    bizCount.textContent = all.length;
+    listingsNote.textContent = activeCategory !== 'Todos'
+      ? `Mostrando ${activeCategory.toLowerCase()}`
+      : 'Mostrando todos los negocios registrados';
+
+    cardGrid.innerHTML = '';
+
+    if(all.length === 0){
+      cardGrid.innerHTML = activeCategory !== 'Todos' ? `
+        <div class="empty-state">
+          <h3>No encontramos negocios en ese rubro</h3>
+          <p>Probá con otro filtro.</p>
+        </div>` : `
+        <div class="empty-state">
+          <h3>Todavía no hay negocios acá</h3>
+          <p>Sé el primer negocio de tu zona en aparecer en Cadetería Centro.</p>
+          <a href="#/registro" class="btn btn-flame">Registrar mi negocio</a>
+        </div>`;
+      return;
+    }
+
+    all.forEach(biz => {
+      const card = document.createElement('a');
+      card.className = 'biz-card';
+      card.href = '#/negocio/' + biz.id;
+      const products = (biz.products || []).slice(0,2);
+      const totalProducts = (biz.products || []).length;
+      const productsHtml = products.length
+        ? products.map(p => `<div class="prod-row" data-pid="${p.id}"><span>${escapeHtml(p.name)}</span><span class="price">$${escapeHtml(String(p.price))}</span></div>`).join('')
+        : `<span class="no-products">Todavía no cargó su menú</span>`;
+      const catalogLink = totalProducts > 2 ? `<span class="catalog-link">Ver catálogo completo (${totalProducts})</span>` : (totalProducts > 0 ? `<span class="catalog-link">Ver catálogo completo</span>` : '');
+
+      card.innerHTML = `
+        <div class="biz-top">
+          <div class="biz-avatar" style="background:${biz.avatarUrl ? 'transparent' : colorFor(biz.id)};">${avatarHtml(biz)}</div>
+          <div class="biz-top-text">
+            <h3 class="biz-name">${escapeHtml(biz.name)}</h3>
+            <span class="biz-cat">${escapeHtml(biz.category)}</span>
+          </div>
+        </div>
+        <p class="biz-desc">${escapeHtml(biz.description || 'Sin descripción todavía.')}</p>
+        <div class="biz-meta">
+          <span>${escapeHtml(biz.address || 'Dirección no cargada')}</span>
+        </div>
+        <div class="biz-products">${productsHtml}${catalogLink}</div>
+      `;
+      card.querySelectorAll('.prod-row[data-pid]').forEach(row => {
+        row.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const prod = (biz.products || []).find(pp => pp.id === row.dataset.pid);
+          if(prod) openProductModal(prod, biz);
+        });
+      });
+      cardGrid.appendChild(card);
+    });
+  }
+
+  async function renderProductResults(){
+    listingsTitle.textContent = 'Productos';
+
+    let results;
+    try{
+      const qs = new URLSearchParams();
+      qs.set('q', searchTerm);
+      if(activeCategory !== 'Todos') qs.set('category', activeCategory);
+      results = await apiFetch('/products/search?' + qs.toString());
+    }catch(err){
+      cardGrid.innerHTML = `<div class="empty-state"><h3>No pudimos buscar</h3><p>${escapeHtml(err.message)}</p></div>`;
+      return;
+    }
+
+    listingsNote.textContent = `${results.length} producto${results.length===1?'':'s'} encontrado${results.length===1?'':'s'} para "${searchTerm}"`;
+    cardGrid.innerHTML = '';
+
+    if(results.length === 0){
+      cardGrid.innerHTML = `
+        <div class="empty-state">
+          <h3>No encontramos productos</h3>
+          <p>Probá con otra búsqueda o elegí otro rubro.</p>
+        </div>`;
+      return;
+    }
+
+    results.forEach(item => {
+      const card = document.createElement('a');
+      card.className = 'result-card';
+      card.href = 'javascript:void(0)';
+      card.innerHTML = `
+        ${item.image ? `<img class="result-img" src="${item.image}" alt="">` : `<div class="result-img-placeholder">Sin foto</div>`}
+        <div class="result-body">
+          <p class="pname">${escapeHtml(item.name)}</p>
+          <span class="pprice">$${escapeHtml(String(item.price))}</span>
+          ${item.desc ? `<p class="pdesc">${escapeHtml(item.desc)}</p>` : ''}
+          <p class="result-biz">De <strong>${escapeHtml(item.bizName)}</strong></p>
+        </div>
+      `;
+      card.addEventListener('click', async () => {
+        try{
+          const biz = await apiFetch('/businesses/' + item.bizId);
+          openProductModal(item, biz);
+        }catch(err){ /* si falla, no pasa nada, el usuario puede reintentar */ }
+      });
+      cardGrid.appendChild(card);
+    });
+  }
+
+  /* ---------- REGISTRO: NEGOCIO ---------- */
+  registerForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    registerMsg.textContent = '';
+    registerMsg.className = 'form-msg';
+
+    const name = document.getElementById('bName').value.trim();
+    const category = document.getElementById('bCategory').value;
+    const email = document.getElementById('bEmail').value.trim();
+    const password = document.getElementById('bPassword').value;
+    const password2 = document.getElementById('bPassword2').value;
+
+    if(!name || !category || !email || !password || !password2){
+      registerMsg.textContent = 'Completá todos los campos.';
+      registerMsg.classList.add('error');
+      return;
+    }
+    if(password !== password2){
+      registerMsg.textContent = 'Las contraseñas no coinciden.';
+      registerMsg.classList.add('error');
+      return;
+    }
+
+    try{
+      const res = await apiFetch('/auth/register/business', {
+        method: 'POST',
+        body: JSON.stringify({ name, category, email, password, password2 })
+      });
+      session = { token: res.token, type: 'negocio', name: res.business.name, businessId: res.business.id };
+      saveSession();
+      registerForm.reset();
+      location.hash = '#/panel';
+    }catch(err){
+      registerMsg.textContent = err.message;
+      registerMsg.classList.add('error');
+    }
+  });
+
+  /* ---------- REGISTRO: CLIENTE ---------- */
+  clientForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    clientRegisterMsg.textContent = '';
+    clientRegisterMsg.className = 'form-msg';
+
+    const name = document.getElementById('cName').value.trim();
+    const email = document.getElementById('cEmail').value.trim();
+    const password = document.getElementById('cPassword').value;
+    const password2 = document.getElementById('cPassword2').value;
+
+    if(!name || !email || !password || !password2){
+      clientRegisterMsg.textContent = 'Completá todos los campos.';
+      clientRegisterMsg.classList.add('error');
+      return;
+    }
+    if(password !== password2){
+      clientRegisterMsg.textContent = 'Las contraseñas no coinciden.';
+      clientRegisterMsg.classList.add('error');
+      return;
+    }
+
+    try{
+      const res = await apiFetch('/auth/register/client', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, password2 })
+      });
+      session = { token: res.token, type: 'cliente', name: res.client.name };
+      saveSession();
+      clientForm.reset();
+      location.hash = '#/';
+    }catch(err){
+      clientRegisterMsg.textContent = err.message;
+      clientRegisterMsg.classList.add('error');
+    }
+  });
+
+  /* ---------- LOGIN ---------- */
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginMsg.textContent = '';
+    loginMsg.className = 'form-msg';
+
+    const email = document.getElementById('lEmail').value.trim();
+    const password = document.getElementById('lPassword').value;
+
+    if(!email || !password){
+      loginMsg.textContent = 'Completá el email y la contraseña.';
+      loginMsg.classList.add('error');
+      return;
+    }
+
+    try{
+      const res = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+
+      if(res.type === 'admin'){
+        session = { token: res.token, type: 'admin', name: res.name || 'Administrador' };
+      } else if(res.type === 'negocio'){
+        session = { token: res.token, type: 'negocio', name: res.business.name, businessId: res.business.id };
+      } else {
+        session = { token: res.token, type: 'cliente', name: res.client.name };
+      }
+      saveSession();
+      loginForm.reset();
+
+      if(res.membershipWarning){
+        alert(res.membershipWarning);
+      }
+      location.hash = session.type === 'negocio' ? '#/panel' : (session.type === 'admin' ? '#/admin' : '#/');
+    }catch(err){
+      loginMsg.textContent = err.message;
+      loginMsg.classList.add('error');
+    }
+  });
+
+  /* ---------- PANEL ---------- */
+  async function renderPanel(){
+    myBizSelectWrap.innerHTML = '';
+    exitEditMode();
+
+    let biz;
+    try{
+      biz = await apiFetch('/business/me');
+    }catch(err){
+      if(err.status === 403 && err.body && err.body.error === 'membership_inactive'){
+        panelTitle.textContent = 'Acceso suspendido';
+        document.querySelector('.panel-header p').textContent = err.body.message;
+        document.querySelectorAll('.panel-two-col')[0].hidden = true;
+        return;
+      }
+      if(err.status === 401){
+        session = null;
+        saveSession();
+        location.hash = '#/ingresar';
+        return;
+      }
+      panelTitle.textContent = 'No pudimos cargar tu negocio';
+      return;
+    }
+
+    currentBusinessCache = biz;
+    panelTitle.textContent = `Panel de ${biz.name}`;
+    viewPublicLink.href = '#/negocio/' + biz.id;
+
+    document.getElementById('pfDesc').value = biz.description || '';
+    document.getElementById('pfAddress').value = biz.address || '';
+    document.getElementById('pfPhone').value = biz.phone || '';
+    document.getElementById('pfWhatsapp').value = biz.whatsapp || '';
+    document.getElementById('pfCategory').value = biz.category || 'Otro';
+    document.getElementById('pfInstagram').value = biz.instagram || '';
+    document.getElementById('pfFacebook').value = biz.facebook || '';
+
+    pendingAvatarDataUrl = '';
+    pendingCoverDataUrl = '';
+    pfAvatarInput.value = '';
+    pfCoverInput.value = '';
+
+    renderAvatarPreview(biz);
+    renderMyProductList(biz);
+  }
+
+  function renderAvatarPreview(biz){
+    avatarPreview.style.background = pendingAvatarDataUrl || biz.avatarUrl ? 'transparent' : colorFor(biz.id);
+    avatarPreview.innerHTML = (pendingAvatarDataUrl || biz.avatarUrl)
+      ? `<img src="${pendingAvatarDataUrl || biz.avatarUrl}" alt="">`
+      : initials(biz.name);
+    const coverSrc = pendingCoverDataUrl || biz.coverUrl;
+    coverPreview.style.background = coverSrc
+      ? `url('${coverSrc}') center/cover no-repeat`
+      : 'linear-gradient(135deg, var(--navy), var(--flame))';
+  }
+
+  pfAvatarInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file || !currentBusinessCache) return;
+    try{
+      pendingAvatarDataUrl = await fileToResizedDataUrl(file, 300, 0.85);
+      renderAvatarPreview(currentBusinessCache);
+    }catch(err){
+      profileMsg.textContent = 'No pudimos procesar esa imagen.';
+      profileMsg.className = 'form-msg error';
+    }
+  });
+
+  pfCoverInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file || !currentBusinessCache) return;
+    try{
+      pendingCoverDataUrl = await fileToResizedDataUrl(file, 1000, 0.8);
+      renderAvatarPreview(currentBusinessCache);
+    }catch(err){
+      profileMsg.textContent = 'No pudimos procesar esa imagen.';
+      profileMsg.className = 'form-msg error';
+    }
+  });
+
+  profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    profileMsg.textContent = '';
+    profileMsg.className = 'form-msg';
+
+    const payload = {
+      description: document.getElementById('pfDesc').value.trim(),
+      address: document.getElementById('pfAddress').value.trim(),
+      phone: document.getElementById('pfPhone').value.trim(),
+      whatsapp: document.getElementById('pfWhatsapp').value.trim(),
+      category: document.getElementById('pfCategory').value,
+      instagram: document.getElementById('pfInstagram').value.trim(),
+      facebook: document.getElementById('pfFacebook').value.trim(),
+    };
+    if(pendingAvatarDataUrl) payload.avatarUrl = pendingAvatarDataUrl;
+    if(pendingCoverDataUrl) payload.coverUrl = pendingCoverDataUrl;
+
+    try{
+      const biz = await apiFetch('/business/me', { method: 'PUT', body: JSON.stringify(payload) });
+      currentBusinessCache = biz;
+      profileMsg.textContent = 'Perfil guardado.';
+      profileMsg.classList.add('success');
+      renderAvatarPreview(biz);
+    }catch(err){
+      profileMsg.textContent = err.message;
+      profileMsg.classList.add('error');
+    }
+  });
+
+  function renderMyProductList(biz){
+    myProductList.innerHTML = '';
+    if(!biz.products || biz.products.length === 0){
+      myProductList.innerHTML = `<p class="sub" style="margin:16px 0 0;">Este negocio todavía no tiene productos cargados.</p>`;
+      return;
+    }
+    biz.products.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'product-item';
+      const thumb = p.image
+        ? `<img class="prod-thumb" src="${p.image}" alt="">`
+        : `<div class="prod-thumb"></div>`;
+      row.innerHTML = `
+        <div class="product-item-text">
+          ${thumb}
+          <span>${escapeHtml(p.name)} — $${escapeHtml(String(p.price))}</span>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button class="del" type="button" data-action="edit" data-id="${p.id}">Editar</button>
+          <button class="del" type="button" data-action="del" data-id="${p.id}">Quitar</button>
+        </div>
+      `;
+      row.querySelector('[data-action="del"]').addEventListener('click', async () => {
+        try{
+          await apiFetch('/business/me/products/' + p.id, { method: 'DELETE' });
+          if(editingProductId === p.id) exitEditMode();
+          const fresh = await apiFetch('/business/me');
+          currentBusinessCache = fresh;
+          renderMyProductList(fresh);
+        }catch(err){
+          productMsg.textContent = err.message;
+          productMsg.className = 'form-msg error';
+        }
+      });
+      row.querySelector('[data-action="edit"]').addEventListener('click', () => {
+        enterEditMode(p);
+      });
+      myProductList.appendChild(row);
+    });
+  }
+
+  const pImageInput = document.getElementById('pImage');
+  const productImgPreview = document.getElementById('productImgPreview');
+  const productSubmitBtn = document.getElementById('productSubmitBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+  let pendingProductImageDataUrl = '';
+
+  function enterEditMode(p){
+    editingProductId = p.id;
+    document.getElementById('pName').value = p.name;
+    document.getElementById('pPrice').value = p.price;
+    document.getElementById('pDesc').value = p.desc || '';
+    pendingProductImageDataUrl = '';
+    pImageInput.value = '';
+    productImgPreview.innerHTML = p.image ? `<img class="prod-thumb" style="width:48px;height:48px;" src="${p.image}" alt="">` : '';
+    productSubmitBtn.textContent = 'Guardar cambios';
+    cancelEditBtn.hidden = false;
+    document.getElementById('pName').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  function exitEditMode(){
+    editingProductId = null;
+    pendingProductImageDataUrl = '';
+    productForm.reset();
+    pImageInput.value = '';
+    productImgPreview.innerHTML = '';
+    productSubmitBtn.textContent = 'Agregar producto';
+    cancelEditBtn.hidden = true;
+  }
+
+  cancelEditBtn.addEventListener('click', exitEditMode);
+
+  pImageInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      pendingProductImageDataUrl = await fileToResizedDataUrl(file, 500, 0.8);
+      productImgPreview.innerHTML = `<img class="prod-thumb" style="width:48px;height:48px;" src="${pendingProductImageDataUrl}" alt="">`;
+    }catch(err){
+      productMsg.textContent = 'No pudimos procesar esa imagen.';
+      productMsg.className = 'form-msg error';
+    }
+  });
+
+  productForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    productMsg.textContent = '';
+    productMsg.className = 'form-msg';
+
+    const name = document.getElementById('pName').value.trim();
+    const price = document.getElementById('pPrice').value;
+    const desc = document.getElementById('pDesc').value.trim();
+
+    if(!name || price === ''){
+      productMsg.textContent = 'Completá el nombre y el precio.';
+      productMsg.classList.add('error');
+      return;
+    }
+
+    const payload = { name, price, desc };
+    if(pendingProductImageDataUrl) payload.image = pendingProductImageDataUrl;
+
+    try{
+      if(editingProductId){
+        await apiFetch('/business/me/products/' + editingProductId, { method: 'PUT', body: JSON.stringify(payload) });
+      } else {
+        await apiFetch('/business/me/products', { method: 'POST', body: JSON.stringify(payload) });
+      }
+      const wasEditing = !!editingProductId;
+      exitEditMode();
+      productMsg.textContent = wasEditing ? 'Producto actualizado.' : 'Producto agregado.';
+      productMsg.classList.add('success');
+      const fresh = await apiFetch('/business/me');
+      currentBusinessCache = fresh;
+      renderMyProductList(fresh);
+    }catch(err){
+      productMsg.textContent = err.message;
+      productMsg.classList.add('error');
+    }
+  });
+
+  /* ---------- PÁGINA PÚBLICA DEL NEGOCIO ---------- */
+  async function renderPublicBusiness(id){
+    const cover = document.getElementById('pubCover');
+    const avatar = document.getElementById('pubAvatar');
+    const nameEl = document.getElementById('pubName');
+    const catEl = document.getElementById('pubCat');
+    const addrEl = document.getElementById('pubAddress');
+    const phoneEl = document.getElementById('pubPhone');
+    const dot1 = document.getElementById('pubMetaDot1');
+    const dot2 = document.getElementById('pubMetaDot2');
+    const contactRow = document.getElementById('pubContactRow');
+    const descEl = document.getElementById('pubDesc');
+    const catalog = document.getElementById('pubCatalog');
+
+    let biz = null;
+    try{
+      biz = await apiFetch('/businesses/' + id);
+    }catch(err){ biz = null; }
+
+    if(!biz){
+      cover.style.background = 'linear-gradient(135deg, var(--navy), var(--flame))';
+      avatar.innerHTML = '';
+      nameEl.textContent = 'No encontramos este negocio';
+      catEl.textContent = '';
+      addrEl.textContent = '';
+      phoneEl.textContent = '';
+      dot1.hidden = true;
+      dot2.hidden = true;
+      contactRow.innerHTML = '';
+      descEl.textContent = 'Puede que se haya dado de baja o que el link esté mal escrito.';
+      catalog.innerHTML = '';
+      return;
+    }
+
+    cover.style.background = biz.coverUrl
+      ? `url('${biz.coverUrl.replace(/'/g,"%27")}') center/cover no-repeat`
+      : 'linear-gradient(135deg, var(--navy), var(--flame))';
+
+    avatar.style.background = biz.avatarUrl ? 'transparent' : colorFor(biz.id);
+    avatar.innerHTML = avatarHtml(biz);
+
+    nameEl.textContent = biz.name;
+    catEl.textContent = biz.category;
+    addrEl.textContent = biz.address || '';
+    phoneEl.textContent = biz.phone || '';
+    dot1.hidden = !biz.address;
+    dot2.hidden = !biz.phone;
+    descEl.textContent = biz.description || 'Este negocio todavía no cargó una descripción.';
+
+    contactRow.innerHTML = '';
+    if(biz.whatsapp){
+      const digits = biz.whatsapp.replace(/[^0-9]/g,'');
+      const prefilled = `Hola ${biz.name}! Te escribo por medio de la página web de Cadetería Centro.`;
+      const a = document.createElement('a');
+      a.className = 'contact-btn whatsapp';
+      a.href = `https://wa.me/${digits}?text=${encodeURIComponent(prefilled)}`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'Escribir por WhatsApp';
+      contactRow.appendChild(a);
+    }
+    if(biz.instagram){
+      const a = document.createElement('a');
+      a.className = 'contact-btn';
+      const handle = biz.instagram.replace('@','').trim();
+      a.href = handle.startsWith('http') ? handle : `https://instagram.com/${handle}`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'Instagram';
+      contactRow.appendChild(a);
+    }
+    if(biz.facebook){
+      const a = document.createElement('a');
+      a.className = 'contact-btn';
+      const handle = biz.facebook.trim();
+      a.href = handle.startsWith('http') ? handle : `https://facebook.com/${handle}`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'Facebook';
+      contactRow.appendChild(a);
+    }
+
+    catalog.innerHTML = '';
+    const products = biz.products || [];
+    if(products.length === 0){
+      catalog.innerHTML = `<div class="empty-state"><h3>Todavía no hay productos cargados</h3><p>Este negocio va a sumar su menú pronto.</p></div>`;
+      return;
+    }
+    products.forEach(p => {
+      const card = document.createElement('a');
+      card.href = 'javascript:void(0)';
+      card.className = 'result-card';
+      card.innerHTML = `
+        ${p.image ? `<img class="result-img" src="${p.image}" alt="">` : `<div class="result-img-placeholder">Sin foto</div>`}
+        <div class="result-body">
+          <p class="pname">${escapeHtml(p.name)}</p>
+          <span class="pprice">$${escapeHtml(String(p.price))}</span>
+          ${p.desc ? `<p class="pdesc">${escapeHtml(p.desc)}</p>` : ''}
+        </div>
+      `;
+      card.addEventListener('click', () => openProductModal(p, biz));
+      catalog.appendChild(card);
+    });
+  }
+
+  /* ---------- MODAL DE PRODUCTO ---------- */
+  function openProductModal(product, biz){
+    const root = document.getElementById('productModalRoot');
+    const imgHtml = product.image
+      ? `<img class="product-modal-img" src="${product.image}" alt="">`
+      : `<div class="product-modal-noimg">Sin foto</div>`;
+
+    let ctaHtml = '';
+    if(biz.whatsapp){
+      const digits = biz.whatsapp.replace(/[^0-9]/g,'');
+      const message = `Hola ${biz.name}! Quiero pedir "${product.name}" ($${product.price}) que vi en la página de Cadetería Centro.`;
+      ctaHtml = `<a class="contact-btn whatsapp btn-block product-modal-cta" style="justify-content:center;" href="https://wa.me/${digits}?text=${encodeURIComponent(message)}" target="_blank" rel="noopener">Pedir por WhatsApp</a>`;
+    } else {
+      ctaHtml = `<p class="sub product-modal-cta" style="margin:0;">Este negocio todavía no cargó un WhatsApp de contacto.</p>`;
+    }
+
+    root.innerHTML = `
+      <div class="product-modal-overlay" id="productModalOverlay">
+        <div class="product-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(product.name)}">
+          <button type="button" class="product-modal-close" id="productModalClose" aria-label="Cerrar">✕</button>
+          ${imgHtml}
+          <div class="product-modal-body">
+            <h3>${escapeHtml(product.name)}</h3>
+            <span class="pprice">$${escapeHtml(String(product.price))}</span>
+            ${product.desc ? `<p class="pdesc">${escapeHtml(product.desc)}</p>` : ''}
+            <div class="product-modal-biz">De <strong>${escapeHtml(biz.name)}</strong> — ${escapeHtml(biz.category)}</div>
+            ${ctaHtml}
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.style.overflow = 'hidden';
+
+    const overlay = document.getElementById('productModalOverlay');
+    overlay.addEventListener('click', (e) => {
+      if(e.target === overlay) closeProductModal();
+    });
+    document.getElementById('productModalClose').addEventListener('click', closeProductModal);
+    document.addEventListener('keydown', onProductModalKeydown);
+  }
+
+  function onProductModalKeydown(e){
+    if(e.key === 'Escape') closeProductModal();
+  }
+
+  function closeProductModal(){
+    const root = document.getElementById('productModalRoot');
+    root.innerHTML = '';
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', onProductModalKeydown);
+  }
+
+  /* ---------- SITIO: BANNER Y ANUNCIO ---------- */
+  let heroCarouselIndex = 0;
+  let heroCarouselTimer = null;
+
+  function renderHeroCarousel(){
+    if(heroCarouselTimer){ clearInterval(heroCarouselTimer); heroCarouselTimer = null; }
+
+    const images = siteSettings.heroImages || [];
+    if(images.length === 0){
+      heroArtEl.innerHTML = defaultHeroArtHtml;
+      return;
+    }
+
+    if(heroCarouselIndex >= images.length) heroCarouselIndex = 0;
+
+    const dots = images.map((img, i) => `<button type="button" class="carousel-dot${i===heroCarouselIndex?' active':''}" data-i="${i}" aria-label="Imagen ${i+1}"></button>`).join('');
+    heroArtEl.innerHTML = `
+      <div class="hero-carousel">
+        <img class="carousel-img" id="carouselLayerA" src="${images[heroCarouselIndex]}" alt="" style="opacity:1;z-index:2;">
+        <img class="carousel-img" id="carouselLayerB" alt="" style="opacity:0;z-index:1;">
+        ${images.length > 1 ? `
+          <button type="button" class="carousel-arrow prev" aria-label="Imagen anterior">‹</button>
+          <button type="button" class="carousel-arrow next" aria-label="Imagen siguiente">›</button>
+          <div class="carousel-dots">${dots}</div>
+        ` : ''}
+      </div>
+    `;
+
+    if(images.length <= 1) return;
+
+    const layerA = document.getElementById('carouselLayerA');
+    const layerB = document.getElementById('carouselLayerB');
+    let frontIsA = true;
+
+    function goTo(i){
+      const newIndex = ((i % images.length) + images.length) % images.length;
+      if(newIndex === heroCarouselIndex) return;
+      const incoming = frontIsA ? layerB : layerA;
+      const outgoing = frontIsA ? layerA : layerB;
+      incoming.src = images[newIndex];
+      incoming.style.zIndex = '2';
+      outgoing.style.zIndex = '1';
+      incoming.style.opacity = '0';
+      void incoming.offsetWidth; // fuerza el reflow para que el fade se anime
+      incoming.style.opacity = '1';
+      frontIsA = !frontIsA;
+      heroCarouselIndex = newIndex;
+      heroArtEl.querySelectorAll('.carousel-dot').forEach((d,i2) => d.classList.toggle('active', i2 === newIndex));
+    }
+
+    function restartTimer(){
+      if(heroCarouselTimer) clearInterval(heroCarouselTimer);
+      heroCarouselTimer = setInterval(() => goTo(heroCarouselIndex + 1), 4500);
+    }
+
+    heroArtEl.querySelector('.prev').addEventListener('click', () => { goTo(heroCarouselIndex - 1); restartTimer(); });
+    heroArtEl.querySelector('.next').addEventListener('click', () => { goTo(heroCarouselIndex + 1); restartTimer(); });
+    heroArtEl.querySelectorAll('.carousel-dot').forEach(dot => {
+      dot.addEventListener('click', () => { goTo(parseInt(dot.dataset.i, 10)); restartTimer(); });
+    });
+
+    restartTimer();
+  }
+
+  function applySiteSettings(){
+    const titleEl = document.getElementById('heroTitle');
+    const subEl = document.getElementById('heroSubtitle');
+    titleEl.textContent = siteSettings.heroTitle || 'Pedí en minutos. Vendé sin límites.';
+    subEl.textContent = siteSettings.heroSubtitle || 'Encontrá rotiserías, pizzerías y panaderías de tu zona, o sumá tu negocio y empezá a recibir pedidos hoy mismo.';
+    renderHeroCarousel();
+
+    const logoMarks = [document.getElementById('headerBrandMark'), document.getElementById('footerBrandMark')];
+    logoMarks.forEach(mark => {
+      if(!mark) return;
+      if(siteSettings.logoUrl){
+        mark.innerHTML = `<img src="${siteSettings.logoUrl}" alt="">`;
+      } else {
+        mark.innerHTML = mark.id === 'headerBrandMark' ? defaultHeaderLogoHtml : defaultFooterLogoHtml;
+      }
+    });
+  }
+
+  function renderPromoBar(){
+    const bar = document.getElementById('promoBar');
+    const text = document.getElementById('promoBarText');
+    if(siteSettings.promoEnabled && siteSettings.promoText){
+      bar.hidden = false;
+      text.textContent = siteSettings.promoText;
+    } else {
+      bar.hidden = true;
+    }
+  }
+
+  async function loadSiteSettings(){
+    try{
+      const res = await apiFetch('/site-settings');
+      siteSettings = Object.assign(siteSettings, res);
+      if(!Array.isArray(siteSettings.heroImages)) siteSettings.heroImages = [];
+    }catch(e){ /* seguimos con los valores por defecto */ }
+  }
+
+  async function saveSiteSettingsPatch(patch){
+    const updated = await apiFetch('/admin/site-settings', { method: 'PUT', body: JSON.stringify(patch) });
+    siteSettings = Object.assign(siteSettings, updated);
+    return siteSettings;
+  }
+
+  /* ---------- ADMIN ---------- */
+  const adminHeroForm = document.getElementById('adminHeroForm');
+  const adminHeroMsg = document.getElementById('adminHeroMsg');
+  const ahImageInput = document.getElementById('ahImage');
+  const bannerImgList = document.getElementById('bannerImgList');
+  const ahLogoInput = document.getElementById('ahLogo');
+  const adminLogoPreview = document.getElementById('adminLogoPreview');
+  const ahWhatsappInput = document.getElementById('ahWhatsapp');
+  const ahWhatsappMsg = document.getElementById('ahWhatsappMsg');
+  const adminPromoForm = document.getElementById('adminPromoForm');
+  const adminPromoMsg = document.getElementById('adminPromoMsg');
+
+  async function renderAdmin(){
+    document.getElementById('ahTitle').value = siteSettings.heroTitle || '';
+    document.getElementById('ahSubtitle').value = siteSettings.heroSubtitle || '';
+    document.getElementById('apEnabled').checked = !!siteSettings.promoEnabled;
+    document.getElementById('apText').value = siteSettings.promoText || '';
+    ahWhatsappInput.value = siteSettings.cadeteriaWhatsapp || '';
+    ahImageInput.value = '';
+    ahLogoInput.value = '';
+
+    adminLogoPreview.style.background = siteSettings.logoUrl ? 'transparent' : 'var(--flame)';
+    adminLogoPreview.innerHTML = siteSettings.logoUrl ? `<img src="${siteSettings.logoUrl}" alt="">` : '';
+
+    renderBannerImgList();
+
+    document.getElementById('adminStats').innerHTML = `<div class="stat-item"><span>Cargando…</span><strong></strong></div>`;
+    try{
+      const stats = await apiFetch('/admin/stats');
+      document.getElementById('adminStats').innerHTML = `
+        <div class="stat-item"><span>Negocios registrados</span><strong>${stats.businesses}</strong></div>
+        <div class="stat-item"><span>Productos publicados</span><strong>${stats.products}</strong></div>
+        <div class="stat-item"><span>Viajes particulares pendientes</span><strong>${stats.pendingTrips}</strong></div>
+        <div class="stat-item"><span>Cuentas registradas</span><strong>${stats.accounts}</strong></div>
+      `;
+    }catch(err){
+      document.getElementById('adminStats').innerHTML = `<p class="sub" style="margin:0;">No pudimos cargar las estadísticas.</p>`;
+    }
+  }
+
+  function renderBannerImgList(){
+    const images = siteSettings.heroImages || [];
+    if(images.length === 0){
+      bannerImgList.innerHTML = `<p class="banner-img-empty">Todavía no subiste ninguna imagen — se muestra la ilustración por defecto.</p>`;
+      return;
+    }
+    bannerImgList.innerHTML = images.map((img, i) => `
+      <div class="banner-img-item">
+        <img src="${img}" alt="">
+        <button type="button" data-i="${i}" aria-label="Quitar imagen">✕</button>
+      </div>
+    `).join('');
+    bannerImgList.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const i = parseInt(btn.dataset.i, 10);
+        const newImages = (siteSettings.heroImages || []).slice();
+        newImages.splice(i, 1);
+        try{
+          await saveSiteSettingsPatch({ heroImages: newImages });
+          heroCarouselIndex = 0;
+          applySiteSettings();
+          renderBannerImgList();
+        }catch(err){
+          adminHeroMsg.textContent = err.message;
+          adminHeroMsg.className = 'form-msg error';
+        }
+      });
+    });
+  }
+
+  ahImageInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    if(files.length === 0) return;
+    adminHeroMsg.textContent = `Subiendo ${files.length} imagen${files.length===1?'':'es'}…`;
+    adminHeroMsg.className = 'form-msg';
+    try{
+      const dataUrls = await Promise.all(files.map(f => fileToResizedDataUrl(f, 1400, 0.8)));
+      const newImages = (siteSettings.heroImages || []).concat(dataUrls);
+      await saveSiteSettingsPatch({ heroImages: newImages });
+      applySiteSettings();
+      renderBannerImgList();
+      ahImageInput.value = '';
+      adminHeroMsg.textContent = `${dataUrls.length} imagen${dataUrls.length===1?'':'es'} agregada${dataUrls.length===1?'':'s'}.`;
+      adminHeroMsg.className = 'form-msg success';
+    }catch(err){
+      adminHeroMsg.textContent = err.message || 'No pudimos guardar esas imágenes. Probá con archivos más livianos o de a menos por vez.';
+      adminHeroMsg.className = 'form-msg error';
+    }
+  });
+
+  ahLogoInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const logoUrl = await fileToResizedDataUrl(file, 200, 0.85);
+      await saveSiteSettingsPatch({ logoUrl });
+      applySiteSettings();
+      adminLogoPreview.style.background = 'transparent';
+      adminLogoPreview.innerHTML = `<img src="${siteSettings.logoUrl}" alt="">`;
+    }catch(err){
+      adminHeroMsg.textContent = err.message || 'No pudimos guardar ese logo.';
+      adminHeroMsg.className = 'form-msg error';
+    }
+  });
+
+  ahWhatsappInput.addEventListener('change', async () => {
+    ahWhatsappMsg.textContent = '';
+    ahWhatsappMsg.className = 'form-msg';
+    try{
+      await saveSiteSettingsPatch({ cadeteriaWhatsapp: ahWhatsappInput.value.trim() });
+      ahWhatsappMsg.textContent = 'Guardado.';
+      ahWhatsappMsg.classList.add('success');
+    }catch(err){
+      ahWhatsappMsg.textContent = err.message;
+      ahWhatsappMsg.classList.add('error');
+    }
+  });
+
+  adminHeroForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    adminHeroMsg.textContent = '';
+    adminHeroMsg.className = 'form-msg';
+
+    try{
+      await saveSiteSettingsPatch({
+        heroTitle: document.getElementById('ahTitle').value.trim(),
+        heroSubtitle: document.getElementById('ahSubtitle').value.trim(),
+      });
+      applySiteSettings();
+      adminHeroMsg.textContent = 'Guardado.';
+      adminHeroMsg.classList.add('success');
+    }catch(err){
+      adminHeroMsg.textContent = err.message;
+      adminHeroMsg.classList.add('error');
+    }
+  });
+
+  adminPromoForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    adminPromoMsg.textContent = '';
+    adminPromoMsg.className = 'form-msg';
+
+    try{
+      await saveSiteSettingsPatch({
+        promoEnabled: document.getElementById('apEnabled').checked,
+        promoText: document.getElementById('apText').value.trim(),
+      });
+      renderPromoBar();
+      adminPromoMsg.textContent = 'Anuncio guardado.';
+      adminPromoMsg.classList.add('success');
+    }catch(err){
+      adminPromoMsg.textContent = err.message;
+      adminPromoMsg.classList.add('error');
+    }
+  });
+
+  /* ---------- VIAJE PARTICULAR ---------- */
+  async function renderMyTrips(){
+    if(!session){
+      myTripsBlock.hidden = true;
+      return;
+    }
+
+    let mine;
+    try{
+      mine = await apiFetch('/trips/mine');
+    }catch(err){
+      myTripsBlock.hidden = true;
+      return;
+    }
+
+    if(!mine || mine.length === 0){
+      myTripsBlock.hidden = true;
+      return;
+    }
+
+    myTripsBlock.hidden = false;
+    myTripList.innerHTML = '';
+    mine.forEach(trip => {
+      const row = document.createElement('div');
+      row.className = 'trip-item';
+      const badgeClass = trip.status === 'cancelado' ? 'cancelado' : 'pendiente';
+      row.innerHTML = `
+        <div class="trip-item-top">
+          <span class="route">${escapeHtml(trip.origin)} → ${escapeHtml(trip.dest)}</span>
+          <span class="status-badge ${badgeClass}">${escapeHtml(capitalize(trip.status))}</span>
+        </div>
+        <span class="desc">${escapeHtml(trip.description)}</span>
+        ${trip.status === 'pendiente' ? `<button type="button" class="cancel-trip" data-id="${trip.id}">Cancelar pedido</button>` : ''}
+      `;
+      const cancelBtn = row.querySelector('.cancel-trip');
+      if(cancelBtn){
+        cancelBtn.addEventListener('click', async () => {
+          try{
+            await apiFetch('/trips/' + trip.id + '/cancel', { method: 'PUT' });
+            await renderMyTrips();
+          }catch(err){ /* si falla, el botón sigue disponible para reintentar */ }
+        });
+      }
+      myTripList.appendChild(row);
+    });
+  }
+
+  tripForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    tripMsg.textContent = '';
+    tripMsg.className = 'form-msg';
+
+    const origin = document.getElementById('tOrigin').value.trim();
+    const dest = document.getElementById('tDest').value.trim();
+    const description = document.getElementById('tDesc').value.trim();
+    const phone = document.getElementById('tPhone').value.trim();
+
+    if(!origin || !dest || !description || !phone){
+      tripMsg.textContent = 'Completá todos los campos.';
+      tripMsg.classList.add('error');
+      return;
+    }
+
+    try{
+      await apiFetch('/trips', { method: 'POST', body: JSON.stringify({ origin, dest, description, phone }) });
+      tripForm.reset();
+
+      if(siteSettings.cadeteriaWhatsapp){
+        const digits = siteSettings.cadeteriaWhatsapp.replace(/[^0-9]/g,'');
+        const message = `Hola! Quiero pedir un viaje particular por Cadetería Centro.\nOrigen: ${origin}\nDestino: ${dest}\nQué hay que llevar: ${description}\nMi teléfono: ${phone}`;
+        window.open(`https://wa.me/${digits}?text=${encodeURIComponent(message)}`, '_blank');
+        tripMsg.textContent = 'Pedido guardado. Te llevamos a WhatsApp para coordinar con un cadete.';
+      } else {
+        tripMsg.textContent = 'Pedido enviado. Un cadete se va a contactar con vos.';
+      }
+      tripMsg.classList.add('success');
+      await renderMyTrips();
+    }catch(err){
+      tripMsg.textContent = err.message;
+      tripMsg.classList.add('error');
+    }
+  });
+
+  /* ---------- BUSCADOR ---------- */
+  document.getElementById('searchBtn').addEventListener('click', async () => {
+    searchTerm = document.getElementById('searchInput').value.trim();
+    await renderListings();
+    document.getElementById('listings').scrollIntoView({behavior:'smooth'});
+  });
+  document.getElementById('searchInput').addEventListener('keydown', async (e) => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      searchTerm = e.target.value.trim();
+      await renderListings();
+      document.getElementById('listings').scrollIntoView({behavior:'smooth'});
+    }
+  });
+
+  /* ---------- INIT ---------- */
+  window.addEventListener('hashchange', render);
+
+  async function resetHomeFilters(){
+    searchTerm = '';
+    activeCategory = 'Todos';
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) searchInput.value = '';
+    if(getRoute().name === 'home') await render();
+  }
+  const brandHomeLink = document.getElementById('brandHomeLink');
+  const footerBrandHomeLink = document.getElementById('footerBrandHomeLink');
+  if(brandHomeLink) brandHomeLink.addEventListener('click', resetHomeFilters);
+  if(footerBrandHomeLink) footerBrandHomeLink.addEventListener('click', resetHomeFilters);
+
+  async function init(){
+    loadSession();
+    await loadSiteSettings();
+    applySiteSettings();
+    renderPromoBar();
+    await render();
+  }
+  init();
+})();
+</script>
+
+</body>
+</html>
