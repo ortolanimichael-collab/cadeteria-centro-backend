@@ -79,3 +79,39 @@ def admin_set_subscription(business_id):
     business.subscription_status = new_status
     db.session.commit()
     return jsonify(business.to_owner_dict())
+
+
+@admin_bp.route('/admin/generate-reset-link', methods=['POST'])
+@role_required('admin')
+def generate_reset_link():
+    """Genera un link de 'restablecer contraseña' para que el admin se lo
+    mande a mano a un negocio o cliente (por WhatsApp, por ejemplo), sin
+    depender de que el email les llegue. Usa exactamente el mismo token
+    que el flujo automático — vence en 1 hora igual."""
+    import os
+    from routes_auth import _reset_serializer
+
+    data = request.get_json(silent=True) or {}
+    email = (data.get('email') or '').strip().lower()
+    if not email:
+        return jsonify({'error': 'Falta el email.'}), 400
+
+    account = Business.query.filter_by(email=email).first()
+    account_type = 'business'
+    if not account:
+        account = Client.query.filter_by(email=email).first()
+        account_type = 'client'
+
+    if not account:
+        return jsonify({'error': 'No encontramos ninguna cuenta con ese email.'}), 404
+
+    token = _reset_serializer().dumps({'email': email, 'type': account_type})
+    frontend_url = os.environ.get('FRONTEND_URL', '').rstrip('/')
+    link = f'{frontend_url}/#/restablecer?token={token}'
+
+    return jsonify({
+        'ok': True,
+        'link': link,
+        'name': account.name,
+        'accountType': 'Negocio' if account_type == 'business' else 'Cliente',
+    })
