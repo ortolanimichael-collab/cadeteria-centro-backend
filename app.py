@@ -17,9 +17,13 @@ def create_app():
     app = Flask(__name__)
 
     db_url = os.environ.get('DATABASE_URL', 'sqlite:///cadeteria_centro.db')
-    # Render entrega DATABASE_URL como "postgres://...", SQLAlchemy moderno pide "postgresql://..."
+    # Render entrega DATABASE_URL como "postgres://...". SQLAlchemy necesita "postgresql://...",
+    # y le indicamos que use el driver psycopg (v3), que sí tiene soporte para versiones
+    # nuevas de Python (a diferencia de psycopg2, que se quedó atrás).
     if db_url.startswith('postgres://'):
-        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+        db_url = db_url.replace('postgres://', 'postgresql+psycopg://', 1)
+    elif db_url.startswith('postgresql://'):
+        db_url = db_url.replace('postgresql://', 'postgresql+psycopg://', 1)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
