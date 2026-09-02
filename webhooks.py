@@ -4,38 +4,37 @@ import logging
 import requests
 from flask import Blueprint, request, jsonify
 
-from models import db, Business, SUBSCRIPTION_STATUSES
+from models import db, Business
 
 logger = logging.getLogger(__name__)
 
 webhooks_bp = Blueprint('webhooks', __name__)
 
-PRODUCT_SLUG = 'cadeteria-centro'
+PRODUCTO_SLUG = 'cadeteria-centro'
 
 
 def notify_panel_new_business(business):
-    """Le avisa al panel de membresías que se registró un negocio nuevo,
-    para que cree ahí la ficha de membresía (arranca en período de prueba).
-    No hacemos que el registro falle si el panel está caído: solo lo logueamos.
+    """Le avisa a tu panel de membresías (panel-membresias) que se registró
+    un negocio nuevo, usando su endpoint real /api/registro-externo.
+    No hacemos que el registro falle si el panel está caído o no está
+    configurado: solo lo logueamos.
     """
     panel_url = os.environ.get('PANEL_MEMBRESIAS_URL')
-    api_key = os.environ.get('PANEL_MEMBRESIAS_API_KEY')
-    if not panel_url or not api_key:
-        logger.warning('PANEL_MEMBRESIAS_URL / API_KEY no configurados — no se avisó al panel.')
+    if not panel_url:
+        logger.warning('PANEL_MEMBRESIAS_URL no configurada — no se avisó al panel.')
         return
 
     payload = {
-        'product': PRODUCT_SLUG,
-        'external_id': business.id,
-        'business_name': business.name,
+        'producto': PRODUCTO_SLUG,
+        'nombre': business.name,
         'email': business.email,
-        'created_at': business.created_at.isoformat() if business.created_at else None,
+        'dias_prueba': 15,
+        'id_externo': business.id,
     }
     try:
         resp = requests.post(
-            f'{panel_url.rstrip("/")}/api/webhooks/new-subscriber',
+            f'{panel_url.rstrip("/")}/api/registro-externo',
             json=payload,
-            headers={'Authorization': f'Bearer {api_key}'},
             timeout=8,
         )
         if resp.status_code >= 300:
@@ -46,11 +45,21 @@ def notify_panel_new_business(business):
 
 @webhooks_bp.route('/api/webhooks/membership-update', methods=['POST'])
 def membership_update():
-    """Endpoint que llama el PANEL DE MEMBRESÍAS cuando cambia el estado de pago
-    de un negocio (activó, se atrasó, canceló, etc).
+    """Endpoint que llama TU PANEL DE MEMBRESÍAS cuando renueva o cancela la
+    suscripción de un negocio (función sincronizar_producto() -> tipo
+    'webhook' en panel-membresias).
 
-    Espera un header:  X-Webhook-Secret: <MEMBERSHIP_WEBHOOK_SECRET>
-    Y un body JSON:     { "external_id": "<business.id>", "status": "active" }
+    Header:  X-Webhook-Secret: <MEMBERSHIP_WEBHOOK_SECRET>  (tiene que ser
+             el mismo valor que cargues en el campo webhook_secret del
+             producto 'cadeteria-centro' dentro de panel-membresias)
+    Body:    { "email": "...", "fecha_vencimiento": "2026-10-01", "activo": true }
+
+    Nota: el panel manda "activo" como booleano, no un estado con nombre —
+    lo traducimos a nuestros propios estados: activo=true -> 'active',
+    activo=false -> 'suspended' (no 'cancelled': si de verdad querés dar
+    de baja del todo a un negocio, eso lo hacés a mano desde el panel de
+    admin de Cadetería Centro, para no borrar la página pública de alguien
+    solo porque se atrasó un día con el pago).
     """
     expected_secret = os.environ.get('MEMBERSHIP_WEBHOOK_SECRET')
     provided_secret = request.headers.get('X-Webhook-Secret')
@@ -58,20 +67,18 @@ def membership_update():
         return jsonify({'error': 'No autorizado.'}), 401
 
     data = request.get_json(silent=True) or {}
-    business_id = data.get('external_id')
-    new_status = data.get('status')
+    email = (data.get('email') or '').strip().lower()
+    activo = data.get('activo')
 
-    if not business_id or not new_status:
-        return jsonify({'error': 'Faltan external_id o status.'}), 400
-    if new_status not in SUBSCRIPTION_STATUSES:
-        return jsonify({'error': f'status inválido. Debe ser uno de: {SUBSCRIPTION_STATUSES}'}), 400
+    if not email or activo is None:
+        return jsonify({'error': 'Faltan email o activo.'}), 400
 
-    business = Business.query.get(business_id)
+    business = Business.query.filter_by(email=email).first()
     if not business:
-        return jsonify({'error': 'No existe ningún negocio con ese external_id.'}), 404
+        return jsonify({'error': 'No existe ningún negocio con ese email.'}), 404
 
-    business.subscription_status = new_status
+    business.subscription_status = 'active' if activo else 'suspended'
     db.session.commit()
 
-    logger.info('Membresía de %s (%s) actualizada a %s', business.name, business.id, new_status)
-    return jsonify({'ok': True, 'business_id': business.id, 'subscription_status': new_status})
+    logger.info('Membresía de %s (%s) actualizada a %s', business.name, business.email, business.subscription_status)
+    return jsonify({'ok': True, 'business_id': business.id, 'subscription_status': business.subscription_status})
