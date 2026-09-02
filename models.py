@@ -123,6 +123,7 @@ class Client(db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(160), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    google_id = db.Column(db.String(64), nullable=True)
     created_at = db.Column(db.DateTime, default=utcnow)
 
     def set_password(self, raw_password):

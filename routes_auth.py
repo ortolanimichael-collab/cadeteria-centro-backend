@@ -1,8 +1,11 @@
 import os
+import secrets
 
 from flask import Blueprint, request, jsonify, current_app
 from flask_jwt_extended import create_access_token
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 
 from models import db, Business, Client, Admin
 from webhooks import notify_panel_new_business
@@ -80,6 +83,50 @@ def register_client():
 
     token = create_access_token(identity=client.id, additional_claims={'type': 'client'})
     return jsonify({'token': token, 'client': client.to_dict()}), 201
+
+
+@auth_bp.route('/google', methods=['POST'])
+def google_auth():
+    """Login (o registro automático, si es la primera vez) de un cliente
+    usando su cuenta de Google. El frontend manda el 'credential' que le da
+    Google Identity Services; acá lo verificamos contra los servidores de
+    Google antes de confiar en el email que dice traer."""
+    data = request.get_json(silent=True) or {}
+    credential = data.get('credential')
+    if not credential:
+        return jsonify({'error': 'Falta el token de Google.'}), 400
+
+    client_id = os.environ.get('GOOGLE_CLIENT_ID')
+    if not client_id:
+        return jsonify({'error': 'El login con Google no está configurado en el servidor.'}), 500
+
+    try:
+        idinfo = google_id_token.verify_oauth2_token(credential, google_requests.Request(), client_id)
+    except Exception:
+        return jsonify({'error': 'No pudimos verificar tu cuenta de Google. Probá de nuevo en un momento.'}), 401
+
+    if not idinfo.get('email_verified', False):
+        return jsonify({'error': 'Tu email de Google no está verificado.'}), 401
+
+    email = (idinfo.get('email') or '').strip().lower()
+    name = idinfo.get('name') or email.split('@')[0]
+    google_sub = idinfo.get('sub')
+
+    if Business.query.filter_by(email=email).first():
+        return jsonify({'error': 'Ese email ya está registrado como negocio. Iniciá sesión con tu contraseña.'}), 409
+
+    client = Client.query.filter_by(email=email).first()
+    if not client:
+        client = Client(name=name, email=email, google_id=google_sub)
+        client.set_password(secrets.token_urlsafe(32))  # nadie va a usar esta clave, es solo para cumplir el campo
+        db.session.add(client)
+        db.session.commit()
+    elif not client.google_id:
+        client.google_id = google_sub
+        db.session.commit()
+
+    token = create_access_token(identity=client.id, additional_claims={'type': 'client'})
+    return jsonify({'token': token, 'type': 'client', 'client': client.to_dict()})
 
 
 @auth_bp.route('/login', methods=['POST'])

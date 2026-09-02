@@ -5,6 +5,7 @@ Flask-JWT-Extended==4.6.0
 Flask-Migrate==4.0.7
 psycopg[binary]>=3.2,<4
 itsdangerous==2.2.0
+google-auth==2.35.0
 python-dotenv==1.0.1
 requests==2.32.3
 gunicorn==22.0.0
