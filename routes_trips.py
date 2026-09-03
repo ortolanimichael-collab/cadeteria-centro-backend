@@ -29,14 +29,24 @@ def create_trip():
     dest = (data.get('dest') or '').strip()
     description = (data.get('description') or '').strip()
     phone = (data.get('phone') or '').strip()
+    solicitante_rol = data.get('solicitanteRol') or 'emisor'
+    quien_paga = data.get('quienPaga') or 'emisor'
+    requiere_efectivo = bool(data.get('requiereEfectivo'))
+    monto_efectivo = (data.get('montoEfectivo') or '').strip() if requiere_efectivo else None
 
     if not all([origin, dest, description, phone]):
         return jsonify({'error': 'Completá todos los campos.'}), 400
+    if solicitante_rol not in ('emisor', 'destinatario'):
+        return jsonify({'error': 'solicitanteRol inválido.'}), 400
+    if quien_paga not in ('emisor', 'destinatario'):
+        return jsonify({'error': 'quienPaga inválido.'}), 400
 
     owner_type, owner_id = _current_owner()
 
     trip = TripRequest(
         origin=origin, destination=dest, description=description, phone=phone,
+        solicitante_rol=solicitante_rol, quien_paga=quien_paga,
+        requiere_efectivo=requiere_efectivo, monto_efectivo=monto_efectivo,
         owner_type=owner_type, owner_id=owner_id,
     )
     db.session.add(trip)

@@ -167,6 +167,15 @@ class TripRequest(db.Model):
     phone = db.Column(db.String(40), nullable=False)
     status = db.Column(db.String(20), default='pendiente')  # pendiente | cancelado | entregado
 
+    # Quién completa el formulario respecto del envío en sí.
+    solicitante_rol = db.Column(db.String(20), default='emisor')  # 'emisor' | 'destinatario'
+    # Quién se hace cargo del costo del viaje.
+    quien_paga = db.Column(db.String(20), default='emisor')  # 'emisor' | 'destinatario'
+    # Si el cadete tiene que pagar algo de su bolsillo al retirar (para
+    # después cobrárselo a quien lo recibe), y cuánto aproximadamente.
+    requiere_efectivo = db.Column(db.Boolean, default=False)
+    monto_efectivo = db.Column(db.String(40), nullable=True)
+
     # Quién lo pidió, si estaba logueado. owner_type: 'client' | 'business' | None (anónimo)
     owner_type = db.Column(db.String(20), nullable=True)
     owner_id = db.Column(db.String(36), nullable=True, index=True)
@@ -181,6 +190,10 @@ class TripRequest(db.Model):
             'description': self.description,
             'phone': self.phone,
             'status': self.status,
+            'solicitanteRol': self.solicitante_rol,
+            'quienPaga': self.quien_paga,
+            'requiereEfectivo': bool(self.requiere_efectivo),
+            'montoEfectivo': self.monto_efectivo,
             'createdAt': self.created_at.isoformat() if self.created_at else None,
         }
 
