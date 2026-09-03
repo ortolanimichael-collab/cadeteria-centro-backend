@@ -145,6 +145,10 @@ class Admin(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow)
 
+    # Controlado por panel-membresías vía webhook: si se pone en False,
+    # el login de admin queda bloqueado hasta que se reactive desde ahí.
+    activo = db.Column(db.Boolean, default=True, nullable=False)
+
     def set_password(self, raw_password):
         self.password_hash = generate_password_hash(raw_password)
 

@@ -22,7 +22,10 @@ def _sync_missing_columns():
     gratuito de Render no tenemos consola para correr 'flask db upgrade' a
     mano. SOLO agrega columnas (nunca borra ni modifica una existente), y
     solo si son nullable o tienen un valor por defecto — así nunca puede
-    romper filas que ya existen."""
+    romper filas que ya existen. A las filas YA existentes les aplica el
+    mismo valor por defecto que tendría una fila nueva (si no, quedarían en
+    NULL, que para un campo booleano como "activo" se lee como False y
+    bloquearía cuentas que en realidad debían quedar activas)."""
     inspector = inspect(db.engine)
     for table in db.metadata.tables.values():
         if not inspector.has_table(table.name):
@@ -41,6 +44,11 @@ def _sync_missing_columns():
             col_type = col.type.compile(db.engine.dialect)
             with db.engine.begin() as conn:
                 conn.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type}'))
+                if col.default is not None and not callable(col.default.arg):
+                    conn.execute(
+                        text(f'UPDATE "{table.name}" SET "{col.name}" = :val WHERE "{col.name}" IS NULL'),
+                        {'val': col.default.arg}
+                    )
             logger.info('Columna agregada automáticamente: %s.%s', table.name, col.name)
 
 
