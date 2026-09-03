@@ -8,7 +8,7 @@ from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
 
 from models import db, Business, Client, Admin
-from webhooks import notify_panel_new_business
+from webhooks import notify_panel_new_business, notify_panel_admin_checkin
 from mailer import send_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -140,6 +140,9 @@ def login():
 
     admin = Admin.query.filter_by(email=email).first()
     if admin and admin.check_password(password):
+        if not admin.activo:
+            return jsonify({'error': 'Tu acceso de administrador está desactivado. Contactá a soporte para reactivarlo.'}), 403
+        notify_panel_admin_checkin(admin)
         token = create_access_token(identity=admin.id, additional_claims={'type': 'admin'})
         return jsonify({'token': token, 'type': 'admin', 'name': admin.name})
 

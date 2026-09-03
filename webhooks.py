@@ -12,6 +12,11 @@ webhooks_bp = Blueprint('webhooks', __name__)
 
 PRODUCTO_SLUG = 'cadeteria-centro'
 
+# Slug del producto que representa TU cuenta de admin dentro de
+# panel-membresias (distinto del de los negocios). Si lo creaste con otro
+# nombre, cambialo acá o con la variable de entorno.
+ADMIN_PRODUCTO_SLUG = os.environ.get('PANEL_ADMIN_PRODUCTO_SLUG', 'cadeteria-centro-admin')
+
 
 def notify_panel_new_business(business):
     """Le avisa a tu panel de membresías (panel-membresias) que se registró
@@ -116,3 +121,21 @@ def admin_membership_update():
 
     logger.info('Admin %s actualizado a activo=%s', admin.email, admin.activo)
     return jsonify({'ok': True, 'email': admin.email, 'activo': admin.activo})
+
+
+def notify_panel_admin_checkin(admin):
+    """Le avisa a panel-membresías, en segundo plano y sin cortar nada si
+    falla, que tu cuenta de admin se usó ahora mismo -- así "última
+    conexión" en el panel refleja la realidad. No afecta si podés entrar
+    o no (eso lo decide admin.activo, ya actualizado por webhook aparte)."""
+    panel_url = os.environ.get('PANEL_MEMBRESIAS_URL')
+    if not panel_url:
+        return
+    try:
+        requests.get(
+            f'{panel_url.rstrip("/")}/api/validar-licencia',
+            params={'producto': ADMIN_PRODUCTO_SLUG, 'email': admin.email, 'version': 'web'},
+            timeout=5,
+        )
+    except requests.RequestException as exc:
+        logger.warning('No se pudo avisar el check-in del admin al panel: %s', exc)
