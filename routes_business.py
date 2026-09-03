@@ -140,9 +140,14 @@ def update_my_business():
     if 'hours' in data:
         business.hours = _clean_hours(data.get('hours'))
 
-    # Si cambió la dirección, la volvemos a ubicar en el mapa. Si falla
-    # (dirección rara, servicio caído), no rompe el guardado del resto.
-    if 'address' in data and business.address and business.address != old_address:
+    # Volvemos a ubicar en el mapa si cambió la dirección, O si la dirección
+    # ya está cargada pero todavía no tiene coordenadas (por ejemplo, porque
+    # el intento anterior falló por un límite de pedidos del servicio de
+    # mapas) -- así el próximo guardado reintenta solo, sin que dependas de
+    # cambiar algo en el texto para forzarlo. Si falla, no rompe el resto.
+    direccion_cambio = 'address' in data and business.address and business.address != old_address
+    sin_coordenadas_todavia = business.address and (business.lat is None or business.lng is None)
+    if direccion_cambio or sin_coordenadas_todavia:
         lat, lng = geocode_address(business.address)
         if lat is not None:
             business.lat = lat
