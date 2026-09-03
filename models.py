@@ -37,9 +37,18 @@ class Business(db.Model):
     whatsapp = db.Column(db.String(40), default='')
     instagram = db.Column(db.String(150), default='')
     facebook = db.Column(db.String(150), default='')
+    website = db.Column(db.String(300), default='')
     description = db.Column(db.Text, default='')
     avatar_url = db.Column(db.Text, default='')
     cover_url = db.Column(db.Text, default='')
+
+    # Ubicación real, para mostrarla en un mapa. Se calculan solos a partir
+    # de "address" cuando el negocio guarda su perfil (ver geocoding.py).
+    lat = db.Column(db.Float, nullable=True)
+    lng = db.Column(db.Float, nullable=True)
+
+    # Horarios de atención: {"lun": {"closed": false, "open": "09:00", "close": "20:00"}, ...}
+    hours = db.Column(db.JSON, default=dict)
 
     subscription_status = db.Column(db.String(20), default='trial', nullable=False)
     subscription_updated_at = db.Column(db.DateTime, default=utcnow)
@@ -67,6 +76,29 @@ class Business(db.Model):
         """False si la página pública del negocio no debe mostrarse (dio de baja)."""
         return self.subscription_status != 'cancelled'
 
+    def is_open_now(self):
+        """True/False según el horario cargado. None si no cargó horarios
+        (para que el frontend no muestre nada, en vez de "cerrado" por error)."""
+        if not self.hours:
+            return None
+        try:
+            from datetime import datetime
+            from zoneinfo import ZoneInfo
+            tz = ZoneInfo('America/Argentina/Cordoba')
+            now = datetime.now(tz)
+            dias = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom']
+            cfg = self.hours.get(dias[now.weekday()])
+            if not cfg or cfg.get('closed'):
+                return False
+            open_t = datetime.strptime(cfg['open'], '%H:%M').time()
+            close_t = datetime.strptime(cfg['close'], '%H:%M').time()
+            current_t = now.time()
+            if open_t <= close_t:
+                return open_t <= current_t <= close_t
+            return current_t >= open_t or current_t <= close_t
+        except Exception:
+            return None
+
     def to_public_dict(self, include_products=True):
         data = {
             'id': self.id,
@@ -77,9 +109,14 @@ class Business(db.Model):
             'whatsapp': self.whatsapp,
             'instagram': self.instagram,
             'facebook': self.facebook,
+            'website': self.website,
             'description': self.description,
             'avatarUrl': self.avatar_url,
             'coverUrl': self.cover_url,
+            'lat': self.lat,
+            'lng': self.lng,
+            'hours': self.hours or {},
+            'isOpenNow': self.is_open_now(),
             'createdAt': self.created_at.isoformat() if self.created_at else None,
         }
         if include_products:
@@ -102,16 +139,28 @@ class Product(db.Model):
     name = db.Column(db.String(150), nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.Text, default='')
-    image_url = db.Column(db.Text, default='')
+    image_url = db.Column(db.Text, default='')  # legado: una sola imagen (versión vieja)
+    images = db.Column(db.JSON, default=list)   # lista de imágenes (varias fotos por producto)
+
+    # Grupos de opciones para variar el producto, ej:
+    # [{"name": "¿Con papas?", "type": "single", "options": [
+    #     {"name": "Con papas", "price": 800}, {"name": "Sin papas", "price": 0}
+    # ]}]
+    # type: "single" (elegí una) o "multiple" (elegí una o más)
+    variant_groups = db.Column(db.JSON, default=list)
+
     created_at = db.Column(db.DateTime, default=utcnow)
 
     def to_dict(self):
+        imgs = self.images if self.images else ([self.image_url] if self.image_url else [])
         return {
             'id': self.id,
             'name': self.name,
             'price': float(self.price),
             'desc': self.description,
-            'image': self.image_url,
+            'image': imgs[0] if imgs else '',
+            'images': imgs,
+            'variantGroups': self.variant_groups or [],
         }
 
 
