@@ -142,6 +142,7 @@ class Admin(db.Model):
     name = db.Column(db.String(120), default='Administrador')
     email = db.Column(db.String(160), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    activo = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=utcnow)
 
     def set_password(self, raw_password):

@@ -6,11 +6,70 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from sqlalchemy import inspect, text
 from dotenv import load_dotenv
 
 from models import db, Admin
 
 load_dotenv()
+
+
+def _sql_literal(valor):
+    """Convierte un valor por defecto de Python (True, 5, 'texto', etc.) al
+    literal SQL equivalente, para poder incluirlo en un ALTER TABLE."""
+    if isinstance(valor, bool):
+        return 'true' if valor else 'false'
+    if isinstance(valor, (int, float)):
+        return str(valor)
+    return "'" + str(valor).replace("'", "''") + "'"
+
+
+def _sync_missing_columns(app):
+    """
+    Agrega automáticamente, al arrancar, cualquier columna que exista en los
+    modelos (models.py) pero todavía no en la base de datos real -- pasa
+    cuando se agrega un campo nuevo a un modelo (ej: "activo" en Admin) y la
+    tabla ya existía de antes con filas, así que create_all() no la vuelve a
+    crear desde cero (create_all solo agrega TABLAS que faltan, no columnas
+    nuevas en una que ya existe).
+
+    - Si la columna es nullable, se agrega tal cual.
+    - Si es NOT NULL y el modelo le definió un default fijo (ej. default=True),
+      se agrega con ese mismo default a nivel de base de datos, así las filas
+      que ya existen se completan solas sin quedar inválidas.
+    - Si es NOT NULL sin default y la tabla ya tiene filas, se salta (no hay
+      forma segura de agregarla sola sin arriesgar romper datos existentes).
+    """
+    with app.app_context():
+        inspector = inspect(db.engine)
+        for table in db.metadata.tables.values():
+            if not inspector.has_table(table.name):
+                continue
+            existing_cols = {c['name'] for c in inspector.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in existing_cols:
+                    continue
+
+                tiene_default_fijo = col.default is not None and not callable(getattr(col.default, 'arg', None))
+                default_sql = _sql_literal(col.default.arg) if tiene_default_fijo else None
+
+                if not col.nullable and default_sql is None:
+                    with db.engine.connect() as conn:
+                        cantidad_filas = conn.execute(text(f'SELECT COUNT(*) FROM "{table.name}"')).scalar()
+                    if cantidad_filas > 0:
+                        print(f'[aviso] columna {table.name}.{col.name} es NOT NULL sin default y la tabla tiene {cantidad_filas} filas -- no se puede agregar sola.')
+                        continue
+
+                col_type = col.type.compile(db.engine.dialect)
+                partes = [col_type]
+                if default_sql is not None:
+                    partes.append(f'DEFAULT {default_sql}')
+                if not col.nullable:
+                    partes.append('NOT NULL')
+
+                with db.engine.begin() as conn:
+                    conn.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {" ".join(partes)}'))
+                print(f'[info] columna agregada automáticamente: {table.name}.{col.name}')
 
 
 def create_app():
@@ -60,6 +119,7 @@ def create_app():
     # las que faltan.
     with app.app_context():
         db.create_all()
+    _sync_missing_columns(app)
 
     @app.route('/api/health', methods=['GET'])
     def health():
