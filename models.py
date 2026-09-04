@@ -1,10 +1,16 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
 db = SQLAlchemy()
+
+# Argentina no tiene horario de verano desde 2009, así que un offset fijo
+# de -3 alcanza (evita depender de zoneinfo/tz data instalada en el server).
+_AR_TZ = timezone(timedelta(hours=-3))
+
+DIAS_SEMANA = ('lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom')
 
 
 def gen_uuid():
@@ -37,9 +43,14 @@ class Business(db.Model):
     whatsapp = db.Column(db.String(40), default='')
     instagram = db.Column(db.String(150), default='')
     facebook = db.Column(db.String(150), default='')
+    website = db.Column(db.String(200), default='')
     description = db.Column(db.Text, default='')
     avatar_url = db.Column(db.Text, default='')
     cover_url = db.Column(db.Text, default='')
+
+    hours = db.Column(db.JSON, default=dict)  # {'lun': {'closed': False, 'open': '09:00', 'close': '20:00'}, ...}
+    lat = db.Column(db.Float, nullable=True)
+    lng = db.Column(db.Float, nullable=True)
 
     subscription_status = db.Column(db.String(20), default='trial', nullable=False)
     subscription_updated_at = db.Column(db.DateTime, default=utcnow)
@@ -67,6 +78,27 @@ class Business(db.Model):
         """False si la página pública del negocio no debe mostrarse (dio de baja)."""
         return self.subscription_status != 'cancelled'
 
+    def is_open_now(self):
+        """True/False si hoy, a esta hora (horario de Argentina), el negocio
+        está abierto según lo que cargó -- None si no cargó horarios todavía."""
+        if not self.hours:
+            return None
+        ahora = datetime.now(_AR_TZ)
+        dia = DIAS_SEMANA[ahora.weekday()]
+        cfg = self.hours.get(dia)
+        if not cfg or cfg.get('closed'):
+            return False
+        try:
+            abre = datetime.strptime(cfg['open'], '%H:%M').time()
+            cierra = datetime.strptime(cfg['close'], '%H:%M').time()
+        except (KeyError, ValueError):
+            return None
+        ahora_hora = ahora.time()
+        if abre <= cierra:
+            return abre <= ahora_hora <= cierra
+        # horario que cruza medianoche (ej. 20:00 a 02:00)
+        return ahora_hora >= abre or ahora_hora <= cierra
+
     def to_public_dict(self, include_products=True):
         data = {
             'id': self.id,
@@ -77,9 +109,14 @@ class Business(db.Model):
             'whatsapp': self.whatsapp,
             'instagram': self.instagram,
             'facebook': self.facebook,
+            'website': self.website or '',
             'description': self.description,
             'avatarUrl': self.avatar_url,
             'coverUrl': self.cover_url,
+            'hours': self.hours or {},
+            'lat': self.lat,
+            'lng': self.lng,
+            'isOpenNow': self.is_open_now(),
             'createdAt': self.created_at.isoformat() if self.created_at else None,
         }
         if include_products:
@@ -102,7 +139,9 @@ class Product(db.Model):
     name = db.Column(db.String(150), nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.Text, default='')
-    image_url = db.Column(db.Text, default='')
+    image_url = db.Column(db.Text, default='')  # primera imagen, se mantiene por compatibilidad con vistas viejas
+    images = db.Column(db.JSON, default=list)  # todas las fotos del producto
+    variant_groups = db.Column(db.JSON, default=list)  # ej: [{name:'Tamaño', type:'single', options:[{name:'Chico', price:0}, ...]}]
     created_at = db.Column(db.DateTime, default=utcnow)
 
     def to_dict(self):
@@ -112,6 +151,8 @@ class Product(db.Model):
             'price': float(self.price),
             'desc': self.description,
             'image': self.image_url,
+            'images': self.images or [],
+            'variantGroups': self.variant_groups or [],
         }
 
 
@@ -163,6 +204,14 @@ class TripRequest(db.Model):
     phone = db.Column(db.String(40), nullable=False)
     status = db.Column(db.String(20), default='pendiente')  # pendiente | cancelado | entregado
 
+    # 'emisor' (quien envía) | 'destinatario' (quien recibe)
+    solicitante_rol = db.Column(db.String(20), default='emisor')  # quién de los dos completó el formulario
+    quien_paga = db.Column(db.String(20), default='emisor')  # quién paga el viaje del cadete
+
+    # Si el cadete tiene que cobrarle algo en efectivo a quien recibe al entregar.
+    requiere_efectivo = db.Column(db.Boolean, default=False)
+    monto_efectivo = db.Column(db.String(40), default='')  # texto libre (ej. "$3.500"), no se valida como número
+
     # Quién lo pidió, si estaba logueado. owner_type: 'client' | 'business' | None (anónimo)
     owner_type = db.Column(db.String(20), nullable=True)
     owner_id = db.Column(db.String(36), nullable=True, index=True)
@@ -177,6 +226,10 @@ class TripRequest(db.Model):
             'description': self.description,
             'phone': self.phone,
             'status': self.status,
+            'solicitanteRol': self.solicitante_rol or 'emisor',
+            'quienPaga': self.quien_paga or 'emisor',
+            'requiereEfectivo': bool(self.requiere_efectivo),
+            'montoEfectivo': self.monto_efectivo or '',
             'createdAt': self.created_at.isoformat() if self.created_at else None,
         }
 
