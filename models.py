@@ -268,6 +268,79 @@ class SiteSettings(db.Model):
         }
 
 
+# Categorías posibles para un negocio del catálogo de compras (súper/kiosco/etc.)
+STORE_CATEGORIES = ('Supermercado', 'Kiosco', 'Verdulería', 'Carnicería', 'Farmacia', 'Otro')
+
+
+class Store(db.Model):
+    """
+    Súper, kiosco u otro negocio que el admin carga a mano para la función
+    'Hacé tus compras acá' -- no tiene login propio ni panel: es un catálogo
+    simple que el cliente elige antes de mandar su lista de compras.
+    """
+    __tablename__ = 'stores'
+
+    id = db.Column(db.String(36), primary_key=True, default=gen_uuid)
+    name = db.Column(db.String(120), nullable=False)
+    category = db.Column(db.String(40), default='Supermercado', nullable=False)
+    address = db.Column(db.String(200), default='')
+    image_url = db.Column(db.Text, default='')
+    active = db.Column(db.Boolean, default=True, nullable=False)
+    order_index = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=utcnow)
+
+    def to_public_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'category': self.category,
+            'address': self.address or '',
+            'imageUrl': self.image_url or '',
+        }
+
+    def to_admin_dict(self):
+        data = self.to_public_dict()
+        data['active'] = bool(self.active)
+        data['orderIndex'] = self.order_index or 0
+        data['createdAt'] = self.created_at.isoformat() if self.created_at else None
+        return data
+
+
+class ShoppingTripRequest(db.Model):
+    """Pedido de 'Hacé tus compras acá': una lista de compras para un negocio
+    puntual del catálogo, con entrega a domicilio -- más simple que TripRequest
+    (sin rol ni quién paga), pensado para súper/kioscos."""
+    __tablename__ = 'shopping_trip_requests'
+
+    id = db.Column(db.String(36), primary_key=True, default=gen_uuid)
+    store_id = db.Column(db.String(36), db.ForeignKey('stores.id', ondelete='SET NULL'), nullable=True, index=True)
+    address = db.Column(db.String(200), nullable=False)  # dirección de entrega
+    shopping_list = db.Column(db.Text, nullable=False)  # lista de compras en texto libre
+    phone = db.Column(db.String(40), nullable=False)
+    status = db.Column(db.String(20), default='pendiente')  # pendiente | cancelado | entregado
+
+    # Quién lo pidió, si estaba logueado. owner_type: 'client' | 'business' | None (anónimo)
+    owner_type = db.Column(db.String(20), nullable=True)
+    owner_id = db.Column(db.String(36), nullable=True, index=True)
+
+    created_at = db.Column(db.DateTime, default=utcnow)
+
+    store = db.relationship('Store')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'storeId': self.store_id,
+            'storeName': self.store.name if self.store else '(negocio ya no disponible)',
+            'storeImageUrl': self.store.image_url if self.store else '',
+            'address': self.address,
+            'shoppingList': self.shopping_list,
+            'phone': self.phone,
+            'status': self.status,
+            'createdAt': self.created_at.isoformat() if self.created_at else None,
+        }
+
+
 # Dónde se muestra un banner VIP en la página pública.
 # 'top'  -> arriba de todo, debajo de la barra de anuncio, antes del banner principal
 # 'hero' -> cartel grande donde está el banner principal (debajo de "pedí un viaje particular")
