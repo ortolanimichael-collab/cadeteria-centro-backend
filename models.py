@@ -271,8 +271,16 @@ class SiteSettings(db.Model):
 # Dónde se muestra un banner VIP en la página pública.
 # 'top'  -> arriba de todo, debajo de la barra de anuncio, antes del banner principal
 # 'hero' -> cartel grande donde está el banner principal (debajo de "pedí un viaje particular")
-# 'grid' -> se intercala entre las tarjetas de negocios del listado
+# 'grid' -> banner fijo abajo de todo, debajo de "Pedí un viaje particular"
 BANNER_POSITIONS = ('top', 'hero', 'grid')
+
+# Qué parte de la imagen queda visible cuando no entra completa en el cartel
+# (equivale directo a los valores de "object-position" en CSS).
+BANNER_IMAGE_POSITIONS = (
+    'left top', 'center top', 'right top',
+    'left center', 'center center', 'right center',
+    'left bottom', 'center bottom', 'right bottom',
+)
 
 
 class Banner(db.Model):
@@ -287,7 +295,8 @@ class Banner(db.Model):
     image_url = db.Column(db.Text, nullable=False)
     link_url = db.Column(db.Text, default='')
     advertiser_name = db.Column(db.String(150), default='')  # nota interna para el admin: a quién le pertenece
-    position = db.Column(db.String(10), default='grid', nullable=False)  # 'hero' | 'grid'
+    position = db.Column(db.String(10), default='grid', nullable=False)  # 'top' | 'hero' | 'grid'
+    image_position = db.Column(db.String(20), default='center center', nullable=False)  # qué parte de la imagen se ve si se recorta
     active = db.Column(db.Boolean, default=True, nullable=False)  # apagado/prendido manual, además de las fechas
     order_index = db.Column(db.Integer, default=0)  # para ordenar cuando hay varios en la misma posición
     start_date = db.Column(db.DateTime, nullable=True)  # null = ya arrancó, sin fecha de inicio
@@ -317,6 +326,7 @@ class Banner(db.Model):
             'imageUrl': self.image_url,
             'linkUrl': self.link_url or '',
             'position': self.position,
+            'imagePosition': self.image_position or 'center center',
         }
 
     def to_admin_dict(self):
@@ -326,6 +336,7 @@ class Banner(db.Model):
             'linkUrl': self.link_url or '',
             'advertiserName': self.advertiser_name or '',
             'position': self.position,
+            'imagePosition': self.image_position or 'center center',
             'active': bool(self.active),
             'orderIndex': self.order_index or 0,
             'startDate': self.start_date.isoformat() if self.start_date else None,

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask import Blueprint, request, jsonify
 
-from models import db, Banner, BANNER_POSITIONS
+from models import db, Banner, BANNER_POSITIONS, BANNER_IMAGE_POSITIONS
 from auth import role_required
 
 banners_bp = Blueprint('banners', __name__, url_prefix='/api')
@@ -45,6 +45,10 @@ def admin_create_banner():
     if position not in BANNER_POSITIONS:
         return jsonify({'error': f'position inválida. Debe ser una de: {BANNER_POSITIONS}'}), 400
 
+    image_position = data.get('imagePosition') or 'center center'
+    if image_position not in BANNER_IMAGE_POSITIONS:
+        return jsonify({'error': f'imagePosition inválida. Debe ser una de: {BANNER_IMAGE_POSITIONS}'}), 400
+
     try:
         start_date = _parse_fecha(data.get('startDate'))
         end_date = _parse_fecha(data.get('endDate'))
@@ -56,6 +60,7 @@ def admin_create_banner():
         link_url=(data.get('linkUrl') or '').strip(),
         advertiser_name=(data.get('advertiserName') or '').strip(),
         position=position,
+        image_position=image_position,
         active=bool(data.get('active', True)),
         order_index=int(data.get('orderIndex') or 0),
         start_date=start_date,
@@ -88,6 +93,10 @@ def admin_update_banner(banner_id):
         if data.get('position') not in BANNER_POSITIONS:
             return jsonify({'error': f'position inválida. Debe ser una de: {BANNER_POSITIONS}'}), 400
         banner.position = data.get('position')
+    if 'imagePosition' in data:
+        if data.get('imagePosition') not in BANNER_IMAGE_POSITIONS:
+            return jsonify({'error': f'imagePosition inválida. Debe ser una de: {BANNER_IMAGE_POSITIONS}'}), 400
+        banner.image_position = data.get('imagePosition')
     if 'active' in data:
         banner.active = bool(data.get('active'))
     if 'orderIndex' in data:
