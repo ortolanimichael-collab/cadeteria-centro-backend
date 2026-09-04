@@ -1,55 +1,16 @@
 import os
 import getpass
-import logging
 
 import click
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
-from sqlalchemy import inspect, text
 from dotenv import load_dotenv
 
 from models import db, Admin
 
 load_dotenv()
-logger = logging.getLogger(__name__)
-
-
-def _sync_missing_columns():
-    """Agrega automáticamente, al arrancar, cualquier columna que exista en
-    los modelos pero todavía no en la base de datos real — porque en el plan
-    gratuito de Render no tenemos consola para correr 'flask db upgrade' a
-    mano. SOLO agrega columnas (nunca borra ni modifica una existente), y
-    solo si son nullable o tienen un valor por defecto — así nunca puede
-    romper filas que ya existen. A las filas YA existentes les aplica el
-    mismo valor por defecto que tendría una fila nueva (si no, quedarían en
-    NULL, que para un campo booleano como "activo" se lee como False y
-    bloquearía cuentas que en realidad debían quedar activas)."""
-    inspector = inspect(db.engine)
-    for table in db.metadata.tables.values():
-        if not inspector.has_table(table.name):
-            continue  # tabla nueva de cero: create_all() ya la crea entera
-        existing_cols = {c['name'] for c in inspector.get_columns(table.name)}
-        for col in table.columns:
-            if col.name in existing_cols:
-                continue
-            if not col.nullable and col.default is None:
-                logger.warning(
-                    'La columna %s.%s es NOT NULL sin default — no se puede '
-                    'agregar sola, hace falta una migración manual.',
-                    table.name, col.name
-                )
-                continue
-            col_type = col.type.compile(db.engine.dialect)
-            with db.engine.begin() as conn:
-                conn.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN "{col.name}" {col_type}'))
-                if col.default is not None and not callable(col.default.arg):
-                    conn.execute(
-                        text(f'UPDATE "{table.name}" SET "{col.name}" = :val WHERE "{col.name}" IS NULL'),
-                        {'val': col.default.arg}
-                    )
-            logger.info('Columna agregada automáticamente: %s.%s', table.name, col.name)
 
 
 def create_app():
@@ -80,6 +41,7 @@ def create_app():
     from routes_business import business_bp
     from routes_trips import trips_bp
     from routes_admin import admin_bp
+    from routes_banners import banners_bp
     from webhooks import webhooks_bp
     from routes_setup import setup_bp
 
@@ -87,6 +49,7 @@ def create_app():
     app.register_blueprint(business_bp)
     app.register_blueprint(trips_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(banners_bp)
     app.register_blueprint(webhooks_bp)
     app.register_blueprint(setup_bp)
 
@@ -97,7 +60,6 @@ def create_app():
     # las que faltan.
     with app.app_context():
         db.create_all()
-        _sync_missing_columns()
 
     @app.route('/api/health', methods=['GET'])
     def health():
