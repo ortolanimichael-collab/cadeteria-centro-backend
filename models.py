@@ -306,6 +306,29 @@ class Store(db.Model):
         return data
 
 
+class ShoppingProduct(db.Model):
+    """Producto de la lista rápida que se muestra al lado del formulario de
+    'Hacé tus compras acá' -- es una lista general (no por negocio); el
+    cliente toca uno y se agrega solo al texto de su lista de compras."""
+    __tablename__ = 'shopping_products'
+
+    id = db.Column(db.String(36), primary_key=True, default=gen_uuid)
+    name = db.Column(db.String(120), nullable=False)
+    active = db.Column(db.Boolean, default=True, nullable=False)
+    order_index = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=utcnow)
+
+    def to_public_dict(self):
+        return {'id': self.id, 'name': self.name}
+
+    def to_admin_dict(self):
+        data = self.to_public_dict()
+        data['active'] = bool(self.active)
+        data['orderIndex'] = self.order_index or 0
+        data['createdAt'] = self.created_at.isoformat() if self.created_at else None
+        return data
+
+
 class ShoppingTripRequest(db.Model):
     """Pedido de 'Hacé tus compras acá': una lista de compras para un negocio
     puntual del catálogo, con entrega a domicilio -- más simple que TripRequest

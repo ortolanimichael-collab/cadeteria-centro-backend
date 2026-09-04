@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from models import db, ShoppingTripRequest, Store
+from models import db, ShoppingTripRequest, ShoppingProduct, Store
 from auth import role_required
 
 shopping_bp = Blueprint('shopping', __name__, url_prefix='/api')
@@ -55,3 +55,65 @@ def admin_update_shopping_trip_status(trip_id):
     trip.status = status
     db.session.commit()
     return jsonify(trip.to_dict())
+
+
+@shopping_bp.route('/shopping-products', methods=['GET'])
+def list_public_shopping_products():
+    """Público: la lista rápida de productos, para tocar y agregar a la lista de compras."""
+    products = ShoppingProduct.query.filter_by(active=True).order_by(ShoppingProduct.order_index, ShoppingProduct.name).all()
+    return jsonify([p.to_public_dict() for p in products])
+
+
+@shopping_bp.route('/admin/shopping-products', methods=['GET'])
+@role_required('admin')
+def admin_list_shopping_products():
+    products = ShoppingProduct.query.order_by(ShoppingProduct.order_index, ShoppingProduct.name).all()
+    return jsonify([p.to_admin_dict() for p in products])
+
+
+@shopping_bp.route('/admin/shopping-products', methods=['POST'])
+@role_required('admin')
+def admin_create_shopping_product():
+    data = request.get_json(silent=True) or {}
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': 'Falta el nombre del producto.'}), 400
+    product = ShoppingProduct(
+        name=name,
+        active=bool(data.get('active', True)),
+        order_index=int(data.get('orderIndex') or 0),
+    )
+    db.session.add(product)
+    db.session.commit()
+    return jsonify(product.to_admin_dict()), 201
+
+
+@shopping_bp.route('/admin/shopping-products/<product_id>', methods=['PUT'])
+@role_required('admin')
+def admin_update_shopping_product(product_id):
+    product = ShoppingProduct.query.get(product_id)
+    if not product:
+        return jsonify({'error': 'No encontramos ese producto.'}), 404
+    data = request.get_json(silent=True) or {}
+    if 'name' in data:
+        name = (data.get('name') or '').strip()
+        if not name:
+            return jsonify({'error': 'El nombre no puede quedar vacío.'}), 400
+        product.name = name
+    if 'active' in data:
+        product.active = bool(data.get('active'))
+    if 'orderIndex' in data:
+        product.order_index = int(data.get('orderIndex') or 0)
+    db.session.commit()
+    return jsonify(product.to_admin_dict())
+
+
+@shopping_bp.route('/admin/shopping-products/<product_id>', methods=['DELETE'])
+@role_required('admin')
+def admin_delete_shopping_product(product_id):
+    product = ShoppingProduct.query.get(product_id)
+    if not product:
+        return jsonify({'error': 'No encontramos ese producto.'}), 404
+    db.session.delete(product)
+    db.session.commit()
+    return jsonify({'ok': True})
