@@ -101,6 +101,8 @@ def create_app():
     from routes_trips import trips_bp
     from routes_admin import admin_bp
     from routes_banners import banners_bp
+    from routes_stores import stores_bp
+    from routes_shopping import shopping_bp
     from webhooks import webhooks_bp
     from routes_setup import setup_bp
 
@@ -109,6 +111,8 @@ def create_app():
     app.register_blueprint(trips_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(banners_bp)
+    app.register_blueprint(stores_bp)
+    app.register_blueprint(shopping_bp)
     app.register_blueprint(webhooks_bp)
     app.register_blueprint(setup_bp)
 
