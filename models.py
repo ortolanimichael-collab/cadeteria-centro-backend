@@ -216,9 +216,10 @@ class SiteSettings(db.Model):
 
 
 # Dónde se muestra un banner VIP en la página pública.
-# 'hero' -> cartel grande arriba de todo, junto al banner principal
+# 'top'  -> arriba de todo, debajo de la barra de anuncio, antes del banner principal
+# 'hero' -> cartel grande donde está el banner principal (debajo de "pedí un viaje particular")
 # 'grid' -> se intercala entre las tarjetas de negocios del listado
-BANNER_POSITIONS = ('hero', 'grid')
+BANNER_POSITIONS = ('top', 'hero', 'grid')
 
 
 class Banner(db.Model):
