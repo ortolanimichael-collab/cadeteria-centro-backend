@@ -226,6 +226,28 @@ def update_my_business():
     return jsonify(business.to_owner_dict())
 
 
+@business_bp.route('/business/me', methods=['DELETE'])
+@business_access_required
+def delete_my_business():
+    """El propio negocio se da de baja desde su panel. No borra sus datos
+    de la base -- pasa la membresía a 'cancelled', el mismo estado que ya
+    usa el sistema para "dio de baja el servicio por su cuenta" (ver
+    SUBSCRIPTION_STATUSES en models.py). Con eso alcanza para que:
+    - desaparezca de la búsqueda pública al instante (is_publicly_visible)
+    - no pueda volver a entrar a su panel con esta cuenta (is_access_allowed)
+    Se guarda el historial en vez de borrarlo de verdad porque sirve para
+    la facturación/membresías propias, y porque así, si se dio de baja por
+    error, un administrador lo puede reactivar sin que el negocio tenga
+    que cargar todo el catálogo de nuevo desde cero.
+    """
+    business = Business.query.get(get_jwt_identity())
+    if not business:
+        return jsonify({'error': 'No encontramos tu negocio.'}), 404
+    business.subscription_status = 'cancelled'
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
 @business_bp.route('/business/me/products', methods=['POST'])
 @business_access_required
 def add_product():
