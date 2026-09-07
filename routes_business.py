@@ -12,7 +12,14 @@ DIAS_SEMANA = ('lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom')
 
 def _clean_hours(raw):
     """Valida y limpia el objeto de horarios que manda el frontend, para no
-    guardar cualquier cosa. Ignora días con formato raro en vez de fallar."""
+    guardar cualquier cosa. Ignora días con formato raro en vez de fallar.
+
+    Cada día puede tener varios turnos ("ranges") -- por ejemplo, negocios
+    que cierran al mediodía por la siesta y reabren a la tarde. También
+    acepta el formato viejo de un solo {open, close} suelto (sin "ranges"),
+    por si una pestaña del navegador quedó con el código anterior, y lo
+    guarda ya convertido a la lista nueva.
+    """
     if not isinstance(raw, dict):
         return {}
     cleaned = {}
@@ -22,11 +29,22 @@ def _clean_hours(raw):
             continue
         if cfg.get('closed'):
             cleaned[dia] = {'closed': True}
-        else:
+            continue
+        ranges_in = cfg.get('ranges')
+        if not isinstance(ranges_in, list):
             open_t = (cfg.get('open') or '').strip()
             close_t = (cfg.get('close') or '').strip()
+            ranges_in = [{'open': open_t, 'close': close_t}] if open_t and close_t else []
+        ranges = []
+        for r in ranges_in:
+            if not isinstance(r, dict):
+                continue
+            open_t = (r.get('open') or '').strip()
+            close_t = (r.get('close') or '').strip()
             if open_t and close_t:
-                cleaned[dia] = {'closed': False, 'open': open_t, 'close': close_t}
+                ranges.append({'open': open_t, 'close': close_t})
+        if ranges:
+            cleaned[dia] = {'closed': False, 'ranges': ranges}
     return cleaned
 
 

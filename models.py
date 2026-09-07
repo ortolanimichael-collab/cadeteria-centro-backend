@@ -88,16 +88,31 @@ class Business(db.Model):
         cfg = self.hours.get(dia)
         if not cfg or cfg.get('closed'):
             return False
-        try:
-            abre = datetime.strptime(cfg['open'], '%H:%M').time()
-            cierra = datetime.strptime(cfg['close'], '%H:%M').time()
-        except (KeyError, ValueError):
-            return None
+        # "ranges" es una lista de turnos -- permite, por ejemplo, mañana y
+        # tarde con un corte al mediodía por la siesta. Los horarios
+        # guardados con el formato viejo (un solo {open, close} suelto, sin
+        # "ranges") se siguen leyendo igual, como un turno único.
+        ranges = cfg.get('ranges')
+        if not isinstance(ranges, list) or not ranges:
+            if cfg.get('open') and cfg.get('close'):
+                ranges = [{'open': cfg['open'], 'close': cfg['close']}]
+            else:
+                return None
         ahora_hora = ahora.time()
-        if abre <= cierra:
-            return abre <= ahora_hora <= cierra
-        # horario que cruza medianoche (ej. 20:00 a 02:00)
-        return ahora_hora >= abre or ahora_hora <= cierra
+        for r in ranges:
+            try:
+                abre = datetime.strptime(r['open'], '%H:%M').time()
+                cierra = datetime.strptime(r['close'], '%H:%M').time()
+            except (KeyError, ValueError, TypeError):
+                continue
+            if abre <= cierra:
+                if abre <= ahora_hora <= cierra:
+                    return True
+            else:
+                # turno que cruza medianoche (ej. 20:00 a 02:00)
+                if ahora_hora >= abre or ahora_hora <= cierra:
+                    return True
+        return False
 
     def to_public_dict(self, include_products=True):
         data = {
