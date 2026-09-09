@@ -81,6 +81,36 @@ def admin_set_subscription(business_id):
     return jsonify(business.to_owner_dict())
 
 
+@admin_bp.route('/admin/businesses/inactive', methods=['DELETE'])
+@role_required('admin')
+def admin_delete_inactive_businesses():
+    """Borra definitivamente (con sus productos) a todos los negocios que
+    estén suspendidos o dados de baja. No toca a los que están en prueba
+    o activos -- esto es un borrado real de la base, no reversible."""
+    inactive = Business.query.filter(Business.subscription_status.in_(['suspended', 'cancelled'])).all()
+    count = len(inactive)
+    for business in inactive:
+        db.session.delete(business)
+    db.session.commit()
+    return jsonify({'ok': True, 'deleted': count})
+
+
+@admin_bp.route('/admin/businesses/<business_id>', methods=['DELETE'])
+@role_required('admin')
+def admin_delete_business(business_id):
+    """Borra un negocio puntual (y sus productos). Solo se permite si está
+    suspendido o dado de baja, para evitar borrar por error uno activo."""
+    business = Business.query.get(business_id)
+    if not business:
+        return jsonify({'error': 'No encontramos ese negocio.'}), 404
+    if business.subscription_status not in ('suspended', 'cancelled'):
+        return jsonify({'error': 'Solo se pueden borrar negocios suspendidos o dados de baja.'}), 400
+
+    db.session.delete(business)
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
 @admin_bp.route('/admin/generate-reset-link', methods=['POST'])
 @role_required('admin')
 def generate_reset_link():
