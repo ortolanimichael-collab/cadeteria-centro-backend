@@ -10,6 +10,13 @@ logger = logging.getLogger(__name__)
 
 webhooks_bp = Blueprint('webhooks', __name__)
 
+
+def _cabeceras_panel(variable_secreto):
+    """Clave del producto para llamar al panel de membresías (tarea #156).
+    Es la misma que el panel guarda en el campo "clave" de ese producto."""
+    secreto = os.environ.get(variable_secreto)
+    return {'X-Webhook-Secret': secreto} if secreto else {}
+
 PRODUCTO_SLUG = 'cadeteria-centro'
 
 # Slug del producto que representa TU cuenta de admin dentro de
@@ -40,6 +47,7 @@ def notify_panel_new_business(business):
         resp = requests.post(
             f'{panel_url.rstrip("/")}/api/registro-externo',
             json=payload,
+            headers=_cabeceras_panel('MEMBERSHIP_WEBHOOK_SECRET'),
             timeout=8,
         )
         if resp.status_code >= 300:
@@ -135,6 +143,7 @@ def notify_panel_admin_checkin(admin):
         requests.get(
             f'{panel_url.rstrip("/")}/api/validar-licencia',
             params={'producto': ADMIN_PRODUCTO_SLUG, 'email': admin.email, 'version': 'web'},
+            headers=_cabeceras_panel('ADMIN_MEMBERSHIP_WEBHOOK_SECRET'),
             timeout=5,
         )
     except requests.RequestException as exc:
