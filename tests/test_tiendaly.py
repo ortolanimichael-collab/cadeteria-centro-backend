@@ -131,3 +131,19 @@ def test_horarios_convertidos(cli):
     h = tiendaly_sync.convertir_horarios(NEGOCIOS['negocios'][0]['horarios'])
     assert h['lun']['ranges'] == [{'open': '09:00', 'close': '13:00'}, {'open': '17:00', 'close': '23:00'}]
     assert h['dom']['closed'] is True
+
+
+def test_admin_desde_variables_de_entorno(cli, monkeypatch):
+    import app as app_mod
+    with flask_app.app_context():
+        monkeypatch.delenv('ADMIN_EMAIL', raising=False); monkeypatch.delenv('ADMIN_PASSWORD', raising=False)
+        assert app_mod.asegurar_admin_desde_entorno() is None
+        monkeypatch.setenv('ADMIN_EMAIL', 'Yo@X.com'); monkeypatch.setenv('ADMIN_PASSWORD', 'corta')
+        assert app_mod.asegurar_admin_desde_entorno() is None          # contraseña de menos de 8
+        monkeypatch.setenv('ADMIN_PASSWORD', 'una-clave-larga')
+        assert app_mod.asegurar_admin_desde_entorno() is True          # lo crea
+        monkeypatch.setenv('ADMIN_PASSWORD', 'otra-clave-larga')
+        assert app_mod.asegurar_admin_desde_entorno() is False         # el mismo email: cambia la contraseña
+    r = cli.post('/api/auth/login', json={'email': 'yo@x.com', 'password': 'otra-clave-larga'})
+    assert r.status_code == 200 and r.get_json()['type'] == 'admin'
+    assert cli.post('/api/auth/login', json={'email': 'yo@x.com', 'password': 'una-clave-larga'}).status_code == 401

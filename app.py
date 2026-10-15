@@ -72,6 +72,29 @@ def _sync_missing_columns(app):
                 print(f'[info] columna agregada automáticamente: {table.name}.{col.name}')
 
 
+def asegurar_admin_desde_entorno():
+    """Si están cargadas ADMIN_EMAIL y ADMIN_PASSWORD (mínimo 8 caracteres), deja ese admin creado/activo con esa
+    contraseña cada vez que arranca el servidor. Sirve para entrar sin consola ni correo. Quitá ADMIN_PASSWORD de
+    Render cuando ya no la necesites y la contraseña pasa a manejarse solo desde la web."""
+    email = (os.environ.get('ADMIN_EMAIL') or '').strip().lower()
+    password = os.environ.get('ADMIN_PASSWORD') or ''
+    if not email or not password:
+        return None
+    if '@' not in email or len(password) < 8:
+        print('[aviso] ADMIN_EMAIL/ADMIN_PASSWORD ignoradas: email inválido o contraseña de menos de 8 caracteres.')
+        return None
+    admin = Admin.query.filter_by(email=email).first()
+    creado = admin is None
+    if creado:
+        admin = Admin(email=email, name='Administrador')
+        db.session.add(admin)
+    admin.set_password(password)
+    admin.activo = True
+    db.session.commit()
+    print(f'[info] admin {"creado" if creado else "actualizado"} desde variables de entorno: {email}')
+    return creado
+
+
 def create_app():
     app = Flask(__name__)
 
@@ -124,6 +147,8 @@ def create_app():
     with app.app_context():
         db.create_all()
     _sync_missing_columns(app)
+    with app.app_context():
+        asegurar_admin_desde_entorno()
 
     @app.route('/api/health', methods=['GET'])
     def health():
