@@ -8,7 +8,7 @@ from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
 
 from models import db, Business, Client, Admin
-from webhooks import notify_panel_new_business, notify_panel_admin_checkin
+from webhooks import notify_panel_admin_checkin
 from mailer import send_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -26,34 +26,7 @@ def _reset_serializer():
 
 @auth_bp.route('/register/business', methods=['POST'])
 def register_business():
-    data = request.get_json(silent=True) or {}
-    name = (data.get('name') or '').strip()
-    category = (data.get('category') or '').strip()
-    email = (data.get('email') or '').strip().lower()
-    password = data.get('password') or ''
-    password2 = data.get('password2') or ''
-
-    if not all([name, category, email, password, password2]):
-        return jsonify({'error': 'Completá todos los campos.'}), 400
-    if not _valid_email(email):
-        return jsonify({'error': 'El email no es válido.'}), 400
-    if password != password2:
-        return jsonify({'error': 'Las contraseñas no coinciden.'}), 400
-    if len(password) < 6:
-        return jsonify({'error': 'La contraseña tiene que tener al menos 6 caracteres.'}), 400
-
-    if Business.query.filter_by(email=email).first() or Client.query.filter_by(email=email).first():
-        return jsonify({'error': 'Ya existe una cuenta con ese email.'}), 409
-
-    business = Business(name=name, category=category, email=email)
-    business.set_password(password)
-    db.session.add(business)
-    db.session.commit()
-
-    notify_panel_new_business(business)
-
-    token = create_access_token(identity=business.id, additional_claims={'type': 'business'})
-    return jsonify({'token': token, 'business': business.to_owner_dict()}), 201
+    return jsonify({'error': 'Los negocios ahora se crean en Tiendaly. Registrate en tiendaly.ar y aparecés acá solo.'}), 410
 
 
 @auth_bp.route('/register/client', methods=['POST'])
@@ -147,15 +120,8 @@ def login():
         return jsonify({'token': token, 'type': 'admin', 'name': admin.name})
 
     business = Business.query.filter_by(email=email).first()
-    if business and business.check_password(password):
-        token = create_access_token(identity=business.id, additional_claims={'type': 'business'})
-        return jsonify({
-            'token': token, 'type': 'business', 'business': business.to_owner_dict(),
-            'membershipWarning': None if business.is_access_allowed else (
-                'Tu membresía no está activa. Podés iniciar sesión pero no vas a poder '
-                'editar tu negocio hasta que se regularice.'
-            ),
-        })
+    if business and business.source == 'local':
+        return jsonify({'error': 'Los negocios ahora se administran desde Tiendaly (tiendaly.ar). Entrá ahí con tu cuenta.'}), 403
 
     client = Client.query.filter_by(email=email).first()
     if client and client.check_password(password):

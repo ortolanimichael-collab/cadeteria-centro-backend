@@ -1,6 +1,10 @@
-from flask import Blueprint, request, jsonify
+from datetime import datetime
 
-from models import db, SiteSettings, Business, Product, TripRequest, Client
+from flask import Blueprint, request, jsonify
+from sqlalchemy import func
+
+import tiendaly_sync
+from models import db, SiteSettings, Business, Product, TripRequest, Client, SiteEvent
 from auth import role_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api')
@@ -40,75 +44,79 @@ def update_site_settings():
 @admin_bp.route('/admin/stats', methods=['GET'])
 @role_required('admin')
 def stats():
-    total_businesses = Business.query.count()
-    total_products = Product.query.count()
+    espejo = Business.query.filter_by(source='tiendaly')
     pending_trips = TripRequest.query.filter_by(status='pendiente').count()
-    total_accounts = Business.query.count() + Client.query.count()
     return jsonify({
-        'businesses': total_businesses,
-        'products': total_products,
+        'businesses': espejo.count(),
+        'products': Product.query.join(Business, Product.business_id == Business.id).filter(Business.source == 'tiendaly').count(),
         'pendingTrips': pending_trips,
-        'accounts': total_accounts,
+        'accounts': Client.query.count(),
     })
 
 
 @admin_bp.route('/admin/businesses', methods=['GET'])
 @role_required('admin')
 def admin_list_businesses():
-    """Listado completo para el admin, con estado de membresía incluido."""
-    businesses = Business.query.order_by(Business.created_at.desc()).all()
-    return jsonify([b.to_owner_dict() for b in businesses])
+    """Negocios que se ven hoy en el sitio (copia de Tiendaly). Solo lectura: se administran en Tiendaly."""
+    businesses = Business.query.filter_by(source='tiendaly').order_by(Business.name).all()
+    return jsonify([b.to_public_dict() for b in businesses])
 
 
-@admin_bp.route('/admin/businesses/<business_id>/subscription', methods=['PUT'])
+@admin_bp.route('/admin/sync-tiendaly', methods=['POST'])
 @role_required('admin')
-def admin_set_subscription(business_id):
-    """Cambio manual de estado de membresía desde el propio admin de Cadetería
-    Centro (además del webhook automático del panel de membresías)."""
-    from models import SUBSCRIPTION_STATUSES
-
-    business = Business.query.get(business_id)
-    if not business:
-        return jsonify({'error': 'No encontramos ese negocio.'}), 404
-
-    data = request.get_json(silent=True) or {}
-    new_status = data.get('status')
-    if new_status not in SUBSCRIPTION_STATUSES:
-        return jsonify({'error': f'status inválido. Debe ser uno de: {SUBSCRIPTION_STATUSES}'}), 400
-
-    business.subscription_status = new_status
-    db.session.commit()
-    return jsonify(business.to_owner_dict())
+def admin_sync_tiendaly():
+    """Fuerza ahora la lectura de Tiendaly (si no, se actualiza sola cada pocos minutos)."""
+    if not tiendaly_sync.configurado():
+        return jsonify({'ok': False, 'error': 'Falta configurar TIENDALY_URL y TIENDALY_CANAL_CLAVE.'}), 400
+    res = tiendaly_sync.sincronizar()
+    return jsonify(res), (200 if res.get('ok') else 502)
 
 
-@admin_bp.route('/admin/businesses/inactive', methods=['DELETE'])
+def _rango(mes):
+    try:
+        a, m = (int(x) for x in (mes or '').split('-'))
+        ini = datetime(a, m, 1)
+    except (ValueError, TypeError):
+        hoy = datetime.utcnow()
+        ini = datetime(hoy.year, hoy.month, 1)
+    fin = datetime(ini.year + (ini.month == 12), ini.month % 12 + 1, 1)
+    return ini, fin
+
+
+@admin_bp.route('/admin/reporte', methods=['GET'])
 @role_required('admin')
-def admin_delete_inactive_businesses():
-    """Borra definitivamente (con sus productos) a todos los negocios que
-    estén suspendidos o dados de baja. No toca a los que están en prueba
-    o activos -- esto es un borrado real de la base, no reversible."""
-    inactive = Business.query.filter(Business.subscription_status.in_(['suspended', 'cancelled'])).all()
-    count = len(inactive)
-    for business in inactive:
-        db.session.delete(business)
-    db.session.commit()
-    return jsonify({'ok': True, 'deleted': count})
-
-
-@admin_bp.route('/admin/businesses/<business_id>', methods=['DELETE'])
-@role_required('admin')
-def admin_delete_business(business_id):
-    """Borra un negocio puntual (y sus productos). Solo se permite si está
-    suspendido o dado de baja, para evitar borrar por error uno activo."""
-    business = Business.query.get(business_id)
-    if not business:
-        return jsonify({'error': 'No encontramos ese negocio.'}), 404
-    if business.subscription_status not in ('suspended', 'cancelled'):
-        return jsonify({'error': 'Solo se pueden borrar negocios suspendidos o dados de baja.'}), 400
-
-    db.session.delete(business)
-    db.session.commit()
-    return jsonify({'ok': True})
+def admin_reporte():
+    """Reporte mensual para el dueño del sitio: lo que mide el propio sitio (visitas, clics, vistas, pedidos de
+    cadetería) más lo que informa Tiendaly (solicitudes de envío desde las tiendas, clics en sus páginas)."""
+    mes = request.args.get('mes')
+    ini, fin = _rango(mes)
+    filas = dict(db.session.query(SiteEvent.kind, func.count(SiteEvent.id)).filter(
+        SiteEvent.created_at >= ini, SiteEvent.created_at < fin).group_by(SiteEvent.kind).all())
+    por_neg = {}
+    for bid, kind, c in db.session.query(SiteEvent.business_id, SiteEvent.kind, func.count(SiteEvent.id)).filter(
+            SiteEvent.created_at >= ini, SiteEvent.created_at < fin, SiteEvent.business_id.isnot(None)
+    ).group_by(SiteEvent.business_id, SiteEvent.kind):
+        por_neg.setdefault(bid, {})[kind] = int(c)
+    nombres = {b.id: b.name for b in Business.query.filter(Business.id.in_(list(por_neg))).all()} if por_neg else {}
+    sitio = {
+        'visitas': int(filas.get('visit', 0)),
+        'clics_whatsapp': int(filas.get('whatsapp_click', 0)),
+        'negocios_vistos': int(filas.get('business_view', 0)),
+        'pedidos_cadeteria': TripRequest.query.filter(TripRequest.created_at >= ini, TripRequest.created_at < fin).count(),
+        'por_negocio': sorted(
+            [{'negocio': nombres.get(k, '(ya no está)'), 'clics_whatsapp': v.get('whatsapp_click', 0),
+              'vistas': v.get('business_view', 0)} for k, v in por_neg.items()],
+            key=lambda x: -(x['clics_whatsapp'] + x['vistas'])),
+    }
+    tiendaly = None
+    if tiendaly_sync.configurado():
+        try:
+            code, data = tiendaly_sync._get('/api/canal/reporte?mes=' + ini.strftime('%Y-%m'))
+            if code == 200:
+                tiendaly = data
+        except Exception:
+            tiendaly = None
+    return jsonify({'mes': ini.strftime('%Y-%m'), 'sitio': sitio, 'tiendaly': tiendaly})
 
 
 @admin_bp.route('/admin/generate-reset-link', methods=['POST'])
@@ -145,3 +153,22 @@ def generate_reset_link():
         'name': account.name,
         'accountType': 'Negocio' if account_type == 'business' else 'Cliente',
     })
+
+
+TIPOS_EVENTO = ('visit', 'whatsapp_click', 'business_view')
+
+
+@admin_bp.route('/track', methods=['POST'])
+def track():
+    """Contador anónimo (sin IP, sin cookie, sin datos de la persona) para el reporte mensual."""
+    data = request.get_json(silent=True) or {}
+    kind = data.get('kind')
+    if kind not in TIPOS_EVENTO:
+        return jsonify({'error': 'Tipo inválido.'}), 400
+    bid = data.get('businessId')
+    bid = str(bid)[:36] if bid else None
+    if bid and not Business.query.filter_by(id=bid).first():
+        bid = None
+    db.session.add(SiteEvent(kind=kind, business_id=bid))
+    db.session.commit()
+    return jsonify({'ok': True}), 201

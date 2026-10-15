@@ -57,6 +57,14 @@ class Business(db.Model):
 
     created_at = db.Column(db.DateTime, default=utcnow)
 
+    # Los negocios se registran y cargan sus productos en Tiendaly; acá solo hay una copia de lo público
+    # (ver tiendaly_sync.py). 'local' = cuentas viejas de antes de la integración (ya no se muestran).
+    source = db.Column(db.String(12), default='local', nullable=False)
+    tiendaly_id = db.Column(db.Integer, unique=True, index=True)
+    tiendaly_slug = db.Column(db.String(80))
+    tiendaly_url = db.Column(db.Text, default='')
+    rubro_tiendaly = db.Column(db.String(40))
+
     products = db.relationship(
         'Product', backref='business', cascade='all, delete-orphan',
         order_by='Product.created_at'
@@ -133,6 +141,7 @@ class Business(db.Model):
             'lng': self.lng,
             'isOpenNow': self.is_open_now(),
             'createdAt': self.created_at.isoformat() if self.created_at else None,
+            'tiendalyUrl': self.tiendaly_url or '',
         }
         if include_products:
             data['products'] = [p.to_dict() for p in self.products]
@@ -154,6 +163,7 @@ class Product(db.Model):
     name = db.Column(db.String(150), nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
     description = db.Column(db.Text, default='')
+    tiendaly_id = db.Column(db.Integer, index=True)   # id del producto en Tiendaly (copia de solo lectura)
     image_url = db.Column(db.Text, default='')  # primera imagen, se mantiene por compatibilidad con vistas viejas
     images = db.Column(db.JSON, default=list)  # todas las fotos del producto
     variant_groups = db.Column(db.JSON, default=list)  # ej: [{name:'Tamaño', type:'single', options:[{name:'Chico', price:0}, ...]}]
@@ -455,3 +465,14 @@ class Banner(db.Model):
             'isLive': self.is_live,
             'createdAt': self.created_at.isoformat() if self.created_at else None,
         }
+
+
+class SiteEvent(db.Model):
+    """Contador anónimo para el reporte mensual del dueño del sitio: visitas, clics a WhatsApp y negocios vistos.
+    Sin IP, sin cookie y sin datos de la persona."""
+    __tablename__ = 'site_events'
+
+    id = db.Column(db.Integer, primary_key=True)
+    kind = db.Column(db.String(20), nullable=False, index=True)   # visit | whatsapp_click | business_view | trip_request
+    business_id = db.Column(db.String(36), nullable=True, index=True)
+    created_at = db.Column(db.DateTime, default=utcnow, index=True)
