@@ -139,8 +139,11 @@ def sincronizar():
             _aplicar_negocio(b, d)
             est, prods = _get(f'/api/canal/negocios/{tid}/productos')
             if est == 200:
-                _aplicar_productos(b, prods.get('productos', []))
-            total_prod += len(b.products)
+                items = prods.get('productos', [])
+                _aplicar_productos(b, items)
+                total_prod += len(items)
+            else:
+                total_prod += len(b.products)
         for tid, b in locales.items():
             if tid not in remotos:       # ya no aparece (retiró el consentimiento, se ocultó, se dio de baja)
                 db.session.delete(b)

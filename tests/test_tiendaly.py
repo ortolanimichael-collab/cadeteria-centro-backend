@@ -44,7 +44,8 @@ def cli(monkeypatch):
 
 def test_sincroniza_y_se_ve_en_el_listado(cli):
     with flask_app.app_context():
-        assert tiendaly_sync.sincronizar()['ok']
+        res = tiendaly_sync.sincronizar()
+        assert res['ok'] and res['negocios'] == 1 and res['productos'] == 1
     lista = cli.get('/api/businesses').get_json()
     assert len(lista) == 1 and lista[0]['name'] == 'Pizzería Don Juan'
     assert lista[0]['tiendalyUrl'].endswith('/don-juan')
