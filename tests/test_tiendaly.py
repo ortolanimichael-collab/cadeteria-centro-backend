@@ -148,3 +148,37 @@ def test_admin_desde_variables_de_entorno(cli, monkeypatch):
     r = cli.post('/api/auth/login', json={'email': 'yo@x.com', 'password': 'otra-clave-larga'})
     assert r.status_code == 200 and r.get_json()['type'] == 'admin'
     assert cli.post('/api/auth/login', json={'email': 'yo@x.com', 'password': 'una-clave-larga'}).status_code == 401
+
+
+def test_opciones_de_producto_llegan_como_variant_groups(cli):
+    cli.estado['prod'] = {'productos': [
+        {'id': 1, 'nombre': 'Hamburguesa', 'precio': 5000, 'descripcion': '', 'foto': '', 'opciones': [
+            {'nombre': 'Ingredientes', 'tipo': 'quitar', 'obligatorio': False, 'minimo': 0, 'maximo': 0,
+             'items': [{'nombre': 'Lechuga', 'extra': 0, 'marcada': False}, {'nombre': 'Tomate', 'extra': 0, 'marcada': False}]},
+            {'nombre': 'Punto', 'tipo': 'una', 'obligatorio': True, 'minimo': 1, 'maximo': 1,
+             'items': [{'nombre': 'A punto', 'extra': 0, 'marcada': True}, {'nombre': 'Cocida', 'extra': 0, 'marcada': False}]},
+            {'nombre': 'Extras', 'tipo': 'varias', 'obligatorio': False, 'minimo': 0, 'maximo': 2,
+             'items': [{'nombre': 'Queso', 'extra': 500, 'marcada': False}]},
+            {'nombre': 'Raro', 'tipo': 'otro', 'items': [{'nombre': 'x'}]},          # tipo desconocido: se descarta
+            {'nombre': 'Vacío', 'tipo': 'una', 'items': []},                           # sin opciones: se descarta
+        ]},
+        {'id': 2, 'nombre': 'Gaseosa', 'precio': 1000, 'descripcion': '', 'foto': ''},   # sin clave «opciones» (Tiendaly viejo)
+    ]}
+    with flask_app.app_context():
+        assert tiendaly_sync.sincronizar()['ok']
+        g = {p.name: p.variant_groups for p in Product.query.all()}
+    assert [x['name'] for x in g['Hamburguesa']] == ['Ingredientes', 'Punto', 'Extras']
+    ing, punto, extras = g['Hamburguesa']
+    assert ing['type'] == 'remove' and [o['name'] for o in ing['options']] == ['Lechuga', 'Tomate'] and ing['options'][0]['price'] == 0
+    assert punto['type'] == 'single' and punto['required'] is True and punto['options'][0]['checked'] is True
+    assert extras['type'] == 'multiple' and extras['max'] == 2 and extras['options'][0]['price'] == 500
+    assert g['Gaseosa'] == []
+    # lo ve el sitio: la API pública del listado de productos los entrega
+    with flask_app.app_context():
+        d = Product.query.filter_by(name='Hamburguesa').first().to_dict()
+    assert len(d['variantGroups']) == 3
+    # si el dueño le saca las opciones en Tiendaly, se limpian acá
+    cli.estado['prod'] = {'productos': [{'id': 1, 'nombre': 'Hamburguesa', 'precio': 5000, 'descripcion': '', 'foto': '', 'opciones': []}]}
+    with flask_app.app_context():
+        tiendaly_sync.sincronizar()
+        assert Product.query.filter_by(name='Hamburguesa').first().variant_groups == []
