@@ -150,35 +150,40 @@ def test_admin_desde_variables_de_entorno(cli, monkeypatch):
     assert cli.post('/api/auth/login', json={'email': 'yo@x.com', 'password': 'una-clave-larga'}).status_code == 401
 
 
-def test_opciones_de_producto_llegan_como_variant_groups(cli):
-    cli.estado['prod'] = {'productos': [
-        {'id': 1, 'nombre': 'Hamburguesa', 'precio': 5000, 'descripcion': '', 'foto': '', 'opciones': [
-            {'nombre': 'Ingredientes', 'tipo': 'quitar', 'obligatorio': False, 'minimo': 0, 'maximo': 0,
-             'items': [{'nombre': 'Lechuga', 'extra': 0, 'marcada': False}, {'nombre': 'Tomate', 'extra': 0, 'marcada': False}]},
-            {'nombre': 'Punto', 'tipo': 'una', 'obligatorio': True, 'minimo': 1, 'maximo': 1,
-             'items': [{'nombre': 'A punto', 'extra': 0, 'marcada': True}, {'nombre': 'Cocida', 'extra': 0, 'marcada': False}]},
-            {'nombre': 'Extras', 'tipo': 'varias', 'obligatorio': False, 'minimo': 0, 'maximo': 2,
-             'items': [{'nombre': 'Queso', 'extra': 500, 'marcada': False}]},
-            {'nombre': 'Raro', 'tipo': 'otro', 'items': [{'nombre': 'x'}]},          # tipo desconocido: se descarta
-            {'nombre': 'Vacío', 'tipo': 'una', 'items': []},                           # sin opciones: se descarta
-        ]},
-        {'id': 2, 'nombre': 'Gaseosa', 'precio': 1000, 'descripcion': '', 'foto': ''},   # sin clave «opciones» (Tiendaly viejo)
-    ]}
-    with flask_app.app_context():
-        assert tiendaly_sync.sincronizar()['ok']
-        g = {p.name: p.variant_groups for p in Product.query.all()}
-    assert [x['name'] for x in g['Hamburguesa']] == ['Ingredientes', 'Punto', 'Extras']
-    ing, punto, extras = g['Hamburguesa']
-    assert ing['type'] == 'remove' and [o['name'] for o in ing['options']] == ['Lechuga', 'Tomate'] and ing['options'][0]['price'] == 0
-    assert punto['type'] == 'single' and punto['required'] is True and punto['options'][0]['checked'] is True
-    assert extras['type'] == 'multiple' and extras['max'] == 2 and extras['options'][0]['price'] == 500
-    assert g['Gaseosa'] == []
-    # lo ve el sitio: la API pública del listado de productos los entrega
-    with flask_app.app_context():
-        d = Product.query.filter_by(name='Hamburguesa').first().to_dict()
-    assert len(d['variantGroups']) == 3
-    # si el dueño le saca las opciones en Tiendaly, se limpian acá
-    cli.estado['prod'] = {'productos': [{'id': 1, 'nombre': 'Hamburguesa', 'precio': 5000, 'descripcion': '', 'foto': '', 'opciones': []}]}
+def test_admin_elimina_un_negocio_y_la_sincronizacion_no_lo_trae_de_vuelta(cli):
+    h = _admin(cli)
     with flask_app.app_context():
         tiendaly_sync.sincronizar()
-        assert Product.query.filter_by(name='Hamburguesa').first().variant_groups == []
+        bid = Business.query.first().id
+    assert cli.delete(f'/api/admin/businesses/{bid}').status_code in (401, 403, 422)       # sin sesión de admin no se puede
+    r = cli.delete(f'/api/admin/businesses/{bid}', headers=h)
+    assert r.status_code == 200 and r.get_json()['name'] == 'Pizzería Don Juan'
+    assert cli.get('/api/businesses').get_json() == []
+    with flask_app.app_context():
+        assert Product.query.count() == 0                                   # se fueron con sus productos
+        res = tiendaly_sync.sincronizar()                                   # Tiendaly lo sigue mandando, pero está eliminado
+        assert res['ok'] and res['negocios'] == 0 and Business.query.count() == 0
+    assert cli.get('/api/admin/businesses-eliminados', headers=h).get_json() == [{'tiendalyId': 7, 'name': 'Pizzería Don Juan'}]
+    assert cli.delete(f'/api/admin/businesses/{bid}', headers=h).status_code == 404
+
+
+def test_restaurar_un_negocio_eliminado(cli):
+    h = _admin(cli)
+    with flask_app.app_context():
+        tiendaly_sync.sincronizar()
+        bid = Business.query.first().id
+    cli.delete(f'/api/admin/businesses/{bid}', headers=h)
+    r = cli.delete('/api/admin/businesses-eliminados/7', headers=h)
+    assert r.status_code == 200 and r.get_json()['sincronizado'] is True
+    assert [b['name'] for b in cli.get('/api/businesses').get_json()] == ['Pizzería Don Juan']
+    assert cli.get('/api/admin/businesses-eliminados', headers=h).get_json() == []
+    assert cli.delete('/api/admin/businesses-eliminados/7', headers=h).status_code == 404
+
+
+def test_negocio_por_su_numero_de_tiendaly(cli):
+    with flask_app.app_context():
+        tiendaly_sync.sincronizar()
+        bid = Business.query.first().id
+    r = cli.get('/api/businesses/by-tiendaly/7')
+    assert r.status_code == 200 and r.get_json()['id'] == bid
+    assert cli.get('/api/businesses/by-tiendaly/999').status_code == 404

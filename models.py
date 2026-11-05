@@ -155,6 +155,17 @@ class Business(db.Model):
         return data
 
 
+class NegocioEliminado(db.Model):
+    """Un negocio de Tiendaly que el administrador sacó de este sitio. Mientras esté acá, la sincronización con Tiendaly
+    no lo vuelve a traer. No toca nada en Tiendaly: el negocio sigue con su cuenta y su tienda allá."""
+    __tablename__ = 'negocios_eliminados'
+
+    id = db.Column(db.Integer, primary_key=True)
+    tiendaly_id = db.Column(db.Integer, unique=True, nullable=False, index=True)
+    name = db.Column(db.String(120), default='')
+    created_at = db.Column(db.DateTime, default=utcnow)
+
+
 class Product(db.Model):
     __tablename__ = 'products'
 

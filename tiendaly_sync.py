@@ -20,7 +20,7 @@ import time
 
 import requests
 
-from models import db, Business, Product, SUBSCRIPTION_STATUSES
+from models import db, Business, Product, NegocioEliminado, SUBSCRIPTION_STATUSES
 
 log = logging.getLogger(__name__)
 
@@ -91,42 +91,6 @@ def _aplicar_negocio(b, d):
     b.subscription_status = 'active'
 
 
-TIPOS_OPCION = {'una': 'single', 'varias': 'multiple', 'quitar': 'remove'}
-
-
-def _entero(v, tope=50):
-    try:
-        return max(0, min(int(v), tope))
-    except (TypeError, ValueError):
-        return 0
-
-
-def convertir_opciones(opciones):
-    """Opciones de producto de Tiendaly (una / varias / quitar) al formato `variant_groups` de este sitio:
-    [{name, type: 'single' | 'multiple' | 'remove', required, min, max, options: [{name, price, checked}]}].
-      single    elegir una            multiple  elegir varias (min / max)
-      remove    ingredientes que vienen incluidos: el cliente destilda los que NO quiere (no cambia el precio)
-    Tiendaly ya valida todo; acá solo se descarta lo mal formado y se acotan los largos."""
-    out = []
-    for g in (opciones or [])[:40]:
-        if not isinstance(g, dict) or g.get('tipo') not in TIPOS_OPCION:
-            continue
-        items = []
-        for i in (g.get('items') or [])[:40]:
-            if isinstance(i, dict) and (i.get('nombre') or '').strip():
-                try:
-                    precio = max(0.0, float(i.get('extra') or 0))
-                except (TypeError, ValueError):
-                    precio = 0.0
-                items.append({'name': i['nombre'].strip()[:80], 'price': 0 if g['tipo'] == 'quitar' else precio,
-                              'checked': bool(i.get('marcada')) and g['tipo'] != 'quitar'})
-        if not items or not (g.get('nombre') or '').strip():
-            continue
-        out.append({'name': g['nombre'].strip()[:80], 'type': TIPOS_OPCION[g['tipo']], 'required': bool(g.get('obligatorio')),
-                    'min': _entero(g.get('minimo')), 'max': _entero(g.get('maximo')), 'options': items})
-    return out
-
-
 def _aplicar_productos(b, items):
     actuales = {p.tiendaly_id: p for p in b.products if p.tiendaly_id is not None}
     vistos = set()
@@ -140,7 +104,8 @@ def _aplicar_productos(b, items):
         p.description = it.get('descripcion') or ''
         foto = it.get('foto') or ''
         p.image_url, p.images = foto, ([foto] if foto else [])
-        p.variant_groups = convertir_opciones(it.get('opciones'))     # el armado del producto (sin lechuga, extras…)
+        if p.variant_groups is None:
+            p.variant_groups = []
         vistos.add(it['id'])
     for tid, p in actuales.items():
         if tid not in vistos:
@@ -161,7 +126,8 @@ def sincronizar():
             return {'ok': False, 'error': 'El canal está suspendido en Tiendaly.'}
         if estado != 200:
             return {'ok': False, 'error': f'Tiendaly respondió {estado}: se conserva la última copia.'}
-        remotos = {d['id']: d for d in data.get('negocios', [])}
+        eliminados = {x for (x,) in db.session.query(NegocioEliminado.tiendaly_id).all()}   # los que el administrador sacó del sitio
+        remotos = {d['id']: d for d in data.get('negocios', []) if d['id'] not in eliminados}
         locales = {b.tiendaly_id: b for b in Business.query.filter_by(source='tiendaly').all()}
         total_prod = 0
         for tid, d in remotos.items():

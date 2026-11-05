@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import func
 
 import tiendaly_sync
-from models import db, SiteSettings, Business, Product, TripRequest, Client, SiteEvent
+from models import db, SiteSettings, Business, Product, TripRequest, Client, SiteEvent, NegocioEliminado
 from auth import role_required
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/api')
@@ -60,6 +60,43 @@ def admin_list_businesses():
     """Negocios que se ven hoy en el sitio (copia de Tiendaly). Solo lectura: se administran en Tiendaly."""
     businesses = Business.query.filter_by(source='tiendaly').order_by(Business.name).all()
     return jsonify([b.to_public_dict() for b in businesses])
+
+
+@admin_bp.route('/admin/businesses/<business_id>', methods=['DELETE'])
+@role_required('admin')
+def admin_delete_business(business_id):
+    """Elimina un negocio de este sitio (con sus productos). Si venía de Tiendaly queda anotado como eliminado para que la
+    sincronización no lo traiga de nuevo; en Tiendaly no se toca nada. Se puede restaurar."""
+    b = Business.query.filter_by(id=business_id).first()
+    if not b:
+        return jsonify({'error': 'No encontramos este negocio.'}), 404
+    nombre, tid = b.name, b.tiendaly_id
+    if tid is not None and not NegocioEliminado.query.filter_by(tiendaly_id=tid).first():
+        db.session.add(NegocioEliminado(tiendaly_id=tid, name=(nombre or '')[:120]))
+    SiteEvent.query.filter_by(business_id=b.id).update({'business_id': None})
+    db.session.delete(b)
+    db.session.commit()
+    return jsonify({'ok': True, 'name': nombre})
+
+
+@admin_bp.route('/admin/businesses-eliminados', methods=['GET'])
+@role_required('admin')
+def admin_list_deleted_businesses():
+    filas = NegocioEliminado.query.order_by(NegocioEliminado.created_at.desc()).all()
+    return jsonify([{'tiendalyId': f.tiendaly_id, 'name': f.name or ''} for f in filas])
+
+
+@admin_bp.route('/admin/businesses-eliminados/<int:tiendaly_id>', methods=['DELETE'])
+@role_required('admin')
+def admin_restore_business(tiendaly_id):
+    """Restaurar: lo saca de la lista de eliminados y vuelve a leer Tiendaly (si sigue autorizado, reaparece)."""
+    f = NegocioEliminado.query.filter_by(tiendaly_id=tiendaly_id).first()
+    if not f:
+        return jsonify({'error': 'Ese negocio no está en la lista de eliminados.'}), 404
+    db.session.delete(f)
+    db.session.commit()
+    res = tiendaly_sync.sincronizar() if tiendaly_sync.configurado() else {'ok': False}
+    return jsonify({'ok': True, 'sincronizado': bool(res.get('ok'))})
 
 
 @admin_bp.route('/admin/sync-tiendaly', methods=['POST'])

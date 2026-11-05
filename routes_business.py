@@ -81,6 +81,15 @@ def get_business(business_id):
     return jsonify(business.to_public_dict())
 
 
+@business_bp.route('/businesses/by-tiendaly/<int:tiendaly_id>', methods=['GET'])
+def get_business_by_tiendaly(tiendaly_id):
+    """Para el link «Ver mi tienda en Cadetería Centro» que sale de Tiendaly: la tienda se identifica por su número allá."""
+    business = _visibles().filter(Business.tiendaly_id == tiendaly_id).first()
+    if not business:
+        return jsonify({'error': 'No encontramos este negocio.'}), 404
+    return jsonify(business.to_public_dict())
+
+
 @business_bp.route('/products/search', methods=['GET'])
 def search_products():
     """Busca productos por nombre/descripción, o negocios por
