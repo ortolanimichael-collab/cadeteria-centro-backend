@@ -1,7 +1,8 @@
 """Lee de Tiendaly los negocios y productos que se muestran en Cadetería Centro.
 
 Tiendaly es la dueña de los datos: los negocios se registran y cargan sus productos allá. Este sitio solo LEE lo
-público de los que se registraron por Cadetería Centro y aceptaron aparecer (la clave del canal lo garantiza del
+público (incluidas las opciones de cada producto: ingredientes para destildar, tamaños y agregados) de los que se
+registraron por Cadetería Centro y aceptaron aparecer (la clave del canal lo garantiza del
 otro lado). Lo leído se guarda como copia local (`Business` / `Product` con `source = 'tiendaly'`), así el buscador
 que tolera errores de tipeo y todo lo demás siguen funcionando igual y el sitio anda aunque Tiendaly tarde.
 
@@ -91,6 +92,35 @@ def _aplicar_negocio(b, d):
     b.subscription_status = 'active'
 
 
+# Cómo llama Tiendaly a cada tipo de grupo de opciones y cómo lo llama el modal de este sitio
+TIPOS_OPCION = {'una': 'single', 'varias': 'multiple', 'quitar': 'remove'}
+
+
+def convertir_opciones(grupos):
+    """Opciones de un producto de Tiendaly (elegir una, elegir varias, o ingredientes para destildar) al formato que
+    usa el modal de este sitio: {name, type, required, min, max, options:[{name, price, checked}]}."""
+    out = []
+    for g in (grupos if isinstance(grupos, list) else []):
+        if not isinstance(g, dict):
+            continue
+        tipo = TIPOS_OPCION.get(g.get('tipo'))
+        items = [i for i in (g.get('items') or []) if isinstance(i, dict) and (i.get('nombre') or '').strip()]
+        if not tipo or not items:
+            continue
+        out.append({
+            'name': (g.get('nombre') or '')[:80],
+            'type': tipo,
+            'required': bool(g.get('obligatorio')),
+            'min': int(g.get('minimo') or 0),
+            'max': int(g.get('maximo') or 0),
+            # en «quitar» vienen todos tildados y sin precio: el cliente destilda lo que no quiere
+            'options': [{'name': (i.get('nombre') or '')[:80],
+                         'price': 0 if tipo == 'remove' else float(i.get('extra') or 0),
+                         'checked': True if tipo == 'remove' else bool(i.get('marcada'))} for i in items],
+        })
+    return out
+
+
 def _aplicar_productos(b, items):
     actuales = {p.tiendaly_id: p for p in b.products if p.tiendaly_id is not None}
     vistos = set()
@@ -104,8 +134,7 @@ def _aplicar_productos(b, items):
         p.description = it.get('descripcion') or ''
         foto = it.get('foto') or ''
         p.image_url, p.images = foto, ([foto] if foto else [])
-        if p.variant_groups is None:
-            p.variant_groups = []
+        p.variant_groups = convertir_opciones(it.get('opciones'))
         vistos.add(it['id'])
     for tid, p in actuales.items():
         if tid not in vistos:

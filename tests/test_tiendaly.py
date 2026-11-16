@@ -187,3 +187,46 @@ def test_negocio_por_su_numero_de_tiendaly(cli):
     r = cli.get('/api/businesses/by-tiendaly/7')
     assert r.status_code == 200 and r.get_json()['id'] == bid
     assert cli.get('/api/businesses/by-tiendaly/999').status_code == 404
+
+
+GRUPOS = [
+    {'nombre': 'Ingredientes', 'tipo': 'quitar', 'obligatorio': False, 'minimo': 0, 'maximo': 0,
+     'items': [{'nombre': 'Jamón', 'extra': 0, 'marcada': False}, {'nombre': 'Lechuga', 'extra': 0, 'marcada': False}]},
+    {'nombre': 'Tamaño', 'tipo': 'una', 'obligatorio': True, 'minimo': 1, 'maximo': 1,
+     'items': [{'nombre': 'Simple', 'extra': 0, 'marcada': True}, {'nombre': 'Doble', 'extra': 2500, 'marcada': False}]},
+    {'nombre': 'Agregados', 'tipo': 'varias', 'obligatorio': False, 'minimo': 0, 'maximo': 2,
+     'items': [{'nombre': 'Cheddar', 'extra': 800, 'marcada': False}]},
+    {'nombre': 'Vacío', 'tipo': 'quitar', 'obligatorio': False, 'minimo': 0, 'maximo': 0, 'items': []},
+    {'nombre': 'Raro', 'tipo': 'otra-cosa', 'obligatorio': False, 'minimo': 0, 'maximo': 0,
+     'items': [{'nombre': 'X', 'extra': 0, 'marcada': False}]},
+]
+
+
+def test_las_opciones_del_producto_llegan_al_modal(cli):
+    cli.estado['prod'] = {'productos': [dict(PRODUCTOS['productos'][0], opciones=GRUPOS)]}
+    with flask_app.app_context():
+        assert tiendaly_sync.sincronizar()['ok']
+    p = cli.get('/api/products/search?q=pizza').get_json()[0]
+    g = p['variantGroups']
+    assert [x['name'] for x in g] == ['Ingredientes', 'Tamaño', 'Agregados']   # sin grupos vacíos ni tipos desconocidos
+    assert g[0]['type'] == 'remove' and all(o['checked'] and o['price'] == 0 for o in g[0]['options'])
+    assert [o['name'] for o in g[0]['options']] == ['Jamón', 'Lechuga']
+    assert g[1]['type'] == 'single' and g[1]['required'] and g[1]['options'][1]['price'] == 2500
+    assert g[1]['options'][0]['checked'] is True and g[1]['options'][1]['checked'] is False
+    assert g[2]['type'] == 'multiple' and g[2]['max'] == 2 and g[2]['required'] is False
+
+
+def test_un_producto_sin_opciones_queda_sin_grupos(cli):
+    with flask_app.app_context():
+        assert tiendaly_sync.sincronizar()['ok']
+    assert cli.get('/api/products/search?q=pizza').get_json()[0]['variantGroups'] == []
+
+
+def test_si_el_dueno_saca_las_opciones_tambien_se_borran_acá(cli):
+    cli.estado['prod'] = {'productos': [dict(PRODUCTOS['productos'][0], opciones=GRUPOS)]}
+    with flask_app.app_context():
+        tiendaly_sync.sincronizar()
+    cli.estado['prod'] = {'productos': [dict(PRODUCTOS['productos'][0])]}
+    with flask_app.app_context():
+        tiendaly_sync.sincronizar()
+    assert cli.get('/api/products/search?q=pizza').get_json()[0]['variantGroups'] == []
