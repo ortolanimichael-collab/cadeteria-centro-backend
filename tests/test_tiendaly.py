@@ -230,3 +230,32 @@ def test_si_el_dueno_saca_las_opciones_tambien_se_borran_acá(cli):
     with flask_app.app_context():
         tiendaly_sync.sincronizar()
     assert cli.get('/api/products/search?q=pizza').get_json()[0]['variantGroups'] == []
+
+
+PROMOS = [{'cantidad': 2, 'precio': 17000}, {'cantidad': 3, 'precio': 24000},
+          {'cantidad': 1, 'precio': 9000}, {'cantidad': 2, 'precio': 18000}, {'cantidad': 'x', 'precio': 1}]
+
+
+def test_las_promos_por_cantidad_llegan_ordenadas_y_limpias(cli):
+    cli.estado['prod'] = {'productos': [dict(PRODUCTOS['productos'][0], promos=PROMOS)]}
+    with flask_app.app_context():
+        assert tiendaly_sync.sincronizar()['ok']
+    p = cli.get('/api/products/search?q=pizza').get_json()[0]
+    # se descartan la de 1 unidad y la rota; de las dos de 2 unidades queda la más barata
+    assert p['qtyPromos'] == [{'qty': 2, 'price': 17000.0}, {'qty': 3, 'price': 24000.0}]
+
+
+def test_un_producto_sin_promos_queda_sin_promos(cli):
+    with flask_app.app_context():
+        assert tiendaly_sync.sincronizar()['ok']
+    assert cli.get('/api/products/search?q=pizza').get_json()[0]['qtyPromos'] == []
+
+
+def test_si_el_dueno_saca_la_promo_tambien_se_borra_acá(cli):
+    cli.estado['prod'] = {'productos': [dict(PRODUCTOS['productos'][0], promos=PROMOS)]}
+    with flask_app.app_context():
+        tiendaly_sync.sincronizar()
+    cli.estado['prod'] = {'productos': [dict(PRODUCTOS['productos'][0])]}
+    with flask_app.app_context():
+        tiendaly_sync.sincronizar()
+    assert cli.get('/api/products/search?q=pizza').get_json()[0]['qtyPromos'] == []
