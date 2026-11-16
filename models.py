@@ -178,6 +178,7 @@ class Product(db.Model):
     image_url = db.Column(db.Text, default='')  # primera imagen, se mantiene por compatibilidad con vistas viejas
     images = db.Column(db.JSON, default=list)  # todas las fotos del producto
     variant_groups = db.Column(db.JSON, default=list)  # ej: [{name:'Tamaño', type:'single', options:[{name:'Chico', price:0}, ...]}]
+    qty_promos = db.Column(db.JSON, default=list)  # promos por cantidad: [{qty: 2, price: 17000}] (precio TOTAL por esas unidades)
     created_at = db.Column(db.DateTime, default=utcnow)
 
     def to_dict(self):
@@ -189,6 +190,7 @@ class Product(db.Model):
             'image': self.image_url,
             'images': self.images or [],
             'variantGroups': self.variant_groups or [],
+            'qtyPromos': self.qty_promos or [],
         }
 
 

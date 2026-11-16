@@ -1,7 +1,7 @@
 """Lee de Tiendaly los negocios y productos que se muestran en Cadetería Centro.
 
 Tiendaly es la dueña de los datos: los negocios se registran y cargan sus productos allá. Este sitio solo LEE lo
-público (incluidas las opciones de cada producto: ingredientes para destildar, tamaños y agregados) de los que se
+público (incluidas las opciones de cada producto y sus promos por cantidad) de los que se
 registraron por Cadetería Centro y aceptaron aparecer (la clave del canal lo garantiza del
 otro lado). Lo leído se guarda como copia local (`Business` / `Product` con `source = 'tiendaly'`), así el buscador
 que tolera errores de tipeo y todo lo demás siguen funcionando igual y el sitio anda aunque Tiendaly tarde.
@@ -121,6 +121,22 @@ def convertir_opciones(grupos):
     return out
 
 
+def convertir_promos(promos):
+    """Promos por cantidad de Tiendaly ([{cantidad, precio}]) al formato de este sitio: [{qty, price}], ordenadas.
+    El precio es el TOTAL por esa cantidad de unidades, no el de cada una."""
+    out = {}
+    for pr in (promos if isinstance(promos, list) else []):
+        if not isinstance(pr, dict):
+            continue
+        try:
+            qty, price = int(pr.get('cantidad') or 0), float(pr.get('precio') or 0)
+        except (TypeError, ValueError):
+            continue
+        if qty >= 2 and price > 0 and (qty not in out or price < out[qty]):
+            out[qty] = price
+    return [{'qty': q, 'price': out[q]} for q in sorted(out)]
+
+
 def _aplicar_productos(b, items):
     actuales = {p.tiendaly_id: p for p in b.products if p.tiendaly_id is not None}
     vistos = set()
@@ -135,6 +151,7 @@ def _aplicar_productos(b, items):
         foto = it.get('foto') or ''
         p.image_url, p.images = foto, ([foto] if foto else [])
         p.variant_groups = convertir_opciones(it.get('opciones'))
+        p.qty_promos = convertir_promos(it.get('promos'))
         vistos.add(it['id'])
     for tid, p in actuales.items():
         if tid not in vistos:
